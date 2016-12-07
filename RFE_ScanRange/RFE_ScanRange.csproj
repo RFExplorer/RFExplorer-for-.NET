@@ -55,6 +55,9 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\RFE_VersionAssemblyInfo.cs">
+      <Link>Properties\RFE_VersionAssemblyInfo.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RFExplorerCommunicator\RFExplorerCommunicator.csproj">
