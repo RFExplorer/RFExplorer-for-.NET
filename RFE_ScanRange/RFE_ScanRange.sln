@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RFE_ScanRange", "RFE_ScanRange.csproj", "{0D04F5DA-7A3F-4431-8A61-BAF052A3659B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RFExplorerCommunicator", "..\RFExplorerCommunicator\RFExplorerCommunicator.csproj", "{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0D04F5DA-7A3F-4431-8A61-BAF052A3659B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D04F5DA-7A3F-4431-8A61-BAF052A3659B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D04F5DA-7A3F-4431-8A61-BAF052A3659B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0D04F5DA-7A3F-4431-8A61-BAF052A3659B}.Debug|x86.Build.0 = Debug|Any CPU
+		{0D04F5DA-7A3F-4431-8A61-BAF052A3659B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D04F5DA-7A3F-4431-8A61-BAF052A3659B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D04F5DA-7A3F-4431-8A61-BAF052A3659B}.Release|x86.ActiveCfg = Release|Any CPU
+		{0D04F5DA-7A3F-4431-8A61-BAF052A3659B}.Release|x86.Build.0 = Release|Any CPU
+		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Debug|Any CPU.Build.0 = Debug|x86
+		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Debug|x86.ActiveCfg = Debug|x86
+		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Debug|x86.Build.0 = Debug|x86
+		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Release|Any CPU.ActiveCfg = Release|x86
+		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Release|Any CPU.Build.0 = Release|x86
+		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Release|x86.ActiveCfg = Release|x86
+		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
