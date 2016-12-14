@@ -1,0 +1,1585 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>RFExplorerCommunicator</name>
+    </assembly>
+    <members>
+        <member name="P:RFExplorerCommunicator.CollapsibleGroupbox.CollapsedCaption">
+            <summary>
+            change this to show a custom text when collapsed
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.CollapsibleGroupbox.Collapsed">
+            <summary>
+            Set to true to programmatically collapse the groupbox, false to uncollapse
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.CollapsibleGroupbox.CollapsedTextColor">
+            <summary>
+            Color used for collapsed text, otherwise default is that of group box text
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.CollapsibleGroupbox.CollapseButtonColor">
+            <summary>
+            Color used for collapsible button (triangle) otherwise dark blue by default
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.CollapsibleGroupbox.Dispose">
+            <summary>
+            Standard Dispose resources
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.CollapsibleGroupbox.Dispose(System.Boolean)">
+            <summary>
+            Local dispose method
+            </summary>
+            <param name="bDisposing">if disposing is required</param>
+        </member>
+        <member name="E:RFExplorerCommunicator.CollapsibleGroupbox.CollapseButtonClick">
+            <summary>
+            Optional
+            This event fires when the button for collapse/uncollapse is clicked
+            The collapsed property is already updated when this is fired
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFE6GEN_CalibrationData.GetEstimatedAmplitude(System.Double,System.Boolean,System.Int32)">
+            <summary>
+            Returns best matching amplitude value based on internal -30dBm calibration table, and configured power switch/attenuator
+            If not available, this returns the estimated value based on hardcoded measured amplitude values
+            </summary>
+            <param name="dFrequencyMHZ"></param>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFEAmplitudeTableData">
+            <summary>
+            Class support a single collection of calibration amplitude values, of 1 MHz steps
+            Positive values will be used to externally add to the measurement, that means imply correcting attenuation
+            whereas negative values will be to externally substract to the measurement, implying correcting gain.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEAmplitudeTableData.HasCompressionData">
+            <summary>
+            Returns true if data stored include compression amplitude for overload check
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEAmplitudeTableData.HasCalibrationData">
+            <summary>
+            Will return true if there is loaded valid calibration data
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEAmplitudeTableData.CalibrationID">
+            <summary>
+            Calibration ID is usually a filename to name the calibration in use
+            future versions may support different IDs than a filename
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFEAmplitudeTableData.m_arrAmplitudeCalibrationDataDB">
+            <summary>
+            Amplitude correction data for each MHZ entry
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEAmplitudeTableData.GetCompressionAmplitude(System.Int32)">
+            <summary>
+            Amplitude compression data for each MHZ entry
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEAmplitudeTableData.#ctor">
+            <summary>
+            default constructor
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEAmplitudeTableData.NormalizeDataIterating(System.Single[]@)">
+            <summary>
+            utility function to be used by both arrays, when needed
+            </summary>
+            <param name="arrAmplitudeData"></param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEAmplitudeTableData.NormalizeAmplitudeCalibrationDataIterating">
+            <summary>
+            It will iterate to all values and will fill in anything that is not initialized with a valid value
+            As oposed to NormalizeDataCopy, it will look for valid values and will fill it in with intermediate
+            calculated values in between these two. If no valid value is found among two (i.e. last value or first value)
+            then it is filled in using NormalizedDataCopy.
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEAmplitudeTableData.NormalizeCompressionData">
+            <summary>
+            This function will make sure the compression data has start/end points even if not specified in the file
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEAmplitudeTableData.NormalizeDataCopy">
+            <summary>
+            It will iterate to all values and will fill in anything that is not initialized with a valid value
+            It uses a copy method, not an incremental method (i.e. it will pick the first valid value and 
+            go copying the same value over and over till it find another valid one. See NormalizeDataPredict for alternative
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEAmplitudeTableData.LoadFile(System.String)">
+            <summary>
+            Load a file with amplitude and optionally compression data
+            </summary>
+            <param name="sFilename">full path of the filename</param>
+            <returns>true if everything ok, false if data was invalid</returns>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFEBinaryPacketData">
+            <summary>
+            The main goal of this class is to provide support for modulated RAW packet data, regardless modulation type, which is used by Sniffer
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.CaptureTime">
+            <summary>
+            The time when this data capture was created, it should match as much as possible the real data capture
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.FrequencyMHZ">
+            <summary>
+            Center capture frequency in MHZ
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.Count">
+            <summary>
+            Total number of data samples received
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.FilteredCount">
+            <summary>
+            Total number of samples filtered and trimmed
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.RBWKhz">
+            <summary>
+            Resolution BandWidth for capture in KHz
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.ThresholdDBM">
+            <summary>
+            Power level threshold to capture input signal
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.SampleRate">
+            <summary>
+            Sample rate in samples per second
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.FilenameCSV">
+            <summary>
+            Name of CSV file
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.ChartTitle">
+            <summary>
+            User defined chart title
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetVisualObject(System.Int32)">
+            <summary>
+            Get information about user defined text object
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.SetVisualObject(System.Single,System.Single,System.String)">
+            <summary>
+            Set information about user defined text object
+            </summary>
+            <param name="fX"></param>
+            <param name="fY"></param>
+            <param name="sText"></param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.VisualObjectCount">
+            <summary>
+            Get the number user defined text object
+            </summary>
+            <returns>integer with count of visualobject</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.#ctor">
+            <summary>
+            Create a RAW binary packet data without arguments. It is used to create a static Packet data collection
+            Initialize the parameters by default
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.#ctor(System.Double,System.Double,System.UInt16,System.UInt32,System.Single)">
+            <summary>
+            Create a RAW binary packet data with center frequency, RBW, initial sample number, sample rate and threshold
+            </summary>
+            <param name="fFrequencyMHZ">center frequency in MHZ</param>
+            <param name="fRBW">RBW used for capture</param>
+            <param name="nTotalSamples">Total samples captured</param>
+            <param name="nSampleRate">Baud rate in samples per seconds</param>
+            <param name="fThresholdDBM">Threshold of captured in dBm</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.LoadRAWSnifferString(System.String)">
+            <summary>
+            Process received string from RFECommunicator object
+            </summary>
+            <param name="sLine"></param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetSampleValue(System.UInt16)">
+            <summary>
+            Get unfiltered sample value
+            </summary>
+            <param name="nSampleInd"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetFilteredValue(System.UInt16,System.UInt16@,System.Byte@)">
+            <summary>
+            Get filtered sample value
+            </summary>
+            <param name="nInd">Filtered sample index</param>
+            <param name="nX">Value in sample interval of the state change for this sample</param>
+            <param name="nValue">Logic value of this sample</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetDecodedBitValue(System.Int32)">
+            <summary>
+            Get Decoded bit value
+            </summary>
+            <param name="nBitInd"></param>
+            <returns>bit0 = 0, bit1 = 1, bitF = 2, Ok=254(sync) and FAIL=255(sync)</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetDecodedWordText(System.Int32)">
+            <summary>
+            Get Decoded word value
+            </summary>
+            <param name="nWordInd"></param>
+            <returns>address:xxxxxxx, data:xxxx, "OK"/"FAIL" (sync).Although it will depend of protocol</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetDecodedBitsValuePos(System.Int32)">
+            <summary>
+            Get Decoded bit position
+            </summary>
+            <param name="nBitInd"></param>
+            <returns>position in samples or -1 if something was wrong</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetDecodedWordTextdPos(System.Int32)">
+            <summary>
+            Get Decoded word text position
+            </summary>
+            <param name="nWordInd"></param>
+            <returns>position in samples or -1 if something was wrong</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetDecodedBitCount">
+            <summary>
+            Get total number of bits 
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetDecodedWordTextCount">
+            <summary>
+            Get total number of word texts 
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetLargestPeriod(System.Byte)">
+            <summary>
+            Returns the largest period of samples where the value is the same, useful to detect clean areas and fix the filtering based on that
+            This should be done in data already trimmed, otherwise start/stop areas may confuse the algorithm
+            </summary>
+            <param name="nValue">byte value, usually 0, also valid for 1</param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetShortestPeriod(System.Byte)">
+            <summary>
+            Get shortest time period, may not be the same as carrier due to noise. 
+            </summary>
+            <param name="nValue">byte value, usually 0, also valid for 1</param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetCarrierPeriodSample">
+            <summary>
+            Get carrier period in samples. This is calculated  using average over the available samples, counting high level signal periods.
+            </summary>
+            <returns>carrier period in samples</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetCarrierPeriodSeconds">
+            <summary>
+            Get carrier period value in seconds
+            </summary>
+            <returns>carrier period in seconds</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetCarrierFrequency">
+            <summary>
+            Get Carrier Frequency in Hz
+            </summary>
+            <returns>carrier frequency in Hertz</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetDecoderClock">
+            <summary>
+            Get decoder clock value in samples. In a future, it is possible a varible hardcoded periodo (now is  4)
+            </summary>
+            <returns>decoder clock in samples</returns>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketData.Filtered">
+            <summary>
+            Returns true if the sample data was already filtered and trimmed
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.SetDecodedProtocol(RFExplorerCommunicator.RFEBinaryPacketData.eProtocol)">
+            <summary>
+            Set protocol to use
+            </summary>
+            <param name="protocol">enum with especific protocol</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.GetDecodedProtocol">
+            <summary>
+            Get protocol to use
+            </summary>
+            <returns>enum with especific protocol</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.FilterValues">
+            <summary>
+            Filter input sample data so carrier envelope is found and filled in internal containers
+            </summary>
+            <param name="nPeriodMultiplier">Value used to discriminate and low pass filter the carrier. Ideally should be >=2*CarrierPeriod in samples</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.DecodePulseWidth">
+            <summary>
+            Decode sequence of pulse width of zeros and ones
+            </summary>
+            <returns>Array of enum with all data about narrow and wide pulse width of zeros and ones</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.DecodePT2264">
+            <summary>
+            Decode PT2264 protocol. Data bit: 0 = bit0, 1 = bit1, 2 = bitF, Sync: 3 = OK and 4 = FAIL 
+            </summary>
+            <returns>true if is decoded ok, otherwise false</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.DecodeHT12">
+            <summary>
+            Decode HT12 protocol. Data bit: 0 = bit0, 1 = bit1, Sync: 2 = OK and 3 = FAIL 
+            </summary>
+            <returns>Array with decoded sequence. 0 = bit 0, 1 = bit 1, 2 = OK and 3 = FAIL</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.TrimValues(System.UInt16,System.UInt16)">
+            <summary>
+            Trim input samples between two index values. This does not trim filter data, but cleans it if was previously set.
+            Note: after this is completed, trimed out data is lost for good.
+            </summary>
+            <param name="nFirstValidSample"></param>
+            <param name="nLastValidSample"></param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.CSVFiltered_FileHeaderVersioned_001">
+            <summary>
+            CSV filtered simple file version
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.SaveFilteredCSV(System.String,System.Char)">
+            <summary>
+            Save a simple CSV file with coordinates of filtered samples
+            </summary>
+            <param name="sFilename">filename and path to use</param>
+            <param name="cCSVDelimiter">delimiter to separate data</param>
+            <returns>true if it was possible save file or false otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketData.ReadFileCSV(System.String)">
+            <summary>
+            Load a simple file with decoded samples
+            </summary>
+            <param name="sFilename">Decoded csv file from Addin</param>
+            <returns>true if it was possible read file or false otherwise</returns>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFEBinaryPacketDataCollection">
+            <summary>
+            A collection of RFEBinaryPacketData objects
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.#ctor">
+            <summary>
+            Construnctor used to clone this object and do so static
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.OnReportInfo(RFExplorerCommunicator.EventReportInfo)">
+            <summary>
+            Use this event to receive error or info notifications
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEBinaryPacketDataCollection.Count">
+            <summary>
+            Returns the total of elements with actual data allocated.
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.CSVComplete_FileHeaderVersioned_001">
+            <summary>
+            CSV RAW complete file version
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.XML_FileHeaderVersioned_002">
+            <summary>
+            XML file version 
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.CreateXMLSchema">
+            <summary>
+            Create XML Schema used by rfsniffer file
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.SaveFileCSV(System.String,System.Char)">
+            <summary>
+            Will write large multi-scan CSV file, unfiltered, including all values
+            </summary>
+            <param name="sFilename">filename and path to use</param>
+            <param name="cCSVDelimiter">delimiter to separate data</param>
+            <returns>true if it was possible save file or false otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.SaveXML(System.String)">
+            <summary>
+            Save in XML file all data 
+            </summary>
+            <param name="sFilename">User selected path</param>
+            <returns>true if it was possible save file or false otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.LoadXML(System.String)">
+            <summary>
+            Load all data from XML file
+            </summary>
+            <param name="sFilename">Specific path to get data from xml file</param>
+            <returns>true if it was possible read file or false otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.GetData(System.UInt16)">
+            <summary>
+            Return the data pointed by the zero-starting index
+            </summary>
+            <param name="nIndex"></param>
+            <returns>returns null if no data is available with this index</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.IsFull">
+            <summary>
+            True when the absolute maximum of allowed elements in the container is allocated
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.CleanAll">
+            <summary>
+            Remove all existing data
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.Add(RFExplorerCommunicator.RFEBinaryPacketData)">
+            <summary>
+            Add a packet data object
+            </summary>
+            <param name="PacketData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEBinaryPacketDataCollection.ReportLog(System.String)">
+            <summary>
+            Generate an event with error text which is sent to mainform
+            </summary>
+            <param name="sLine">error text</param>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFECommunicator">
+            <summary>
+            Main API class to support all basic low level operations with RF Explorer
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFECommunicator.FCY_CLOCK">
+            <summary>
+            Internal clock used for sampling, required to calculate sample rate
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFECommunicator.RFExplorerSignalType">
+            <summary>
+            Display mode
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFECommunicator.eAmplitudeUnit">
+            <summary>
+            Available amplitude units
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.CurrentAmplitudeUnit">
+            <summary>
+            Get or set current amplitude units used externally
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFECommunicator.eModel">
+            <summary>
+            All possible RF Explorer model values
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFECommunicator.eDSP">
+            <summary>
+            All possible DSP values
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.DSP">
+            <summary>
+            Get or set DSP mode
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.Calculator">
+            <summary>
+            Get the currently configured calculator in the device
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.GetModelTextFromEnum(RFExplorerCommunicator.RFECommunicator.eModel)">
+            <summary>
+            Returns a human readable and normalized identifier text for the model specified in the enum
+            </summary>
+            <param name="model">RFExplorer model</param>
+            <returns>model text identifier such as 433M or WSUB1G</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.GetModelEnumFromText(System.String)">
+            <summary>
+            Returns model enumerator based on text provided
+            </summary>
+            <param name="sText">One of "433M", "868M", "915M", "WSUB1G", "2.4G", "WSUB3G", "6G"</param>
+            <returns>Return valid model enumerator or will set to MODEL_NONE if not found</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsAnalyzerEmbeddedCal">
+            <summary>
+            As a function of expansion or mainboard being currently selected, returns true if there is internal
+            calibration data available, or false if not.
+            IMPORTANT: the calibration data is not returned immediately after connection and that may make think
+            the calibration is not available. 
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.ExpansionSerialNumber">
+            <summary>
+            Serial number for the expansion board, if any.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.SerialNumber">
+            <summary>
+            Serial number for the device (main board)
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.TrackingRFEGen">
+            <summary>
+            Connected tracking generator linked to the current spectrum analyzer object.
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.Convert_dBm_2_dBuV(System.Double)">
+            <summary>
+            Returns the dBuV value assuming 50ohm
+            </summary>
+            <param name="dBm"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.ConvertAmplitude(RFExplorerCommunicator.RFECommunicator.eAmplitudeUnit,System.Double,RFExplorerCommunicator.RFECommunicator.eAmplitudeUnit)">
+            <summary>
+            Will convert from eFrom amplitude unit to eTo amplitude unit
+            </summary>
+            <param name="eFrom"></param>
+            <param name="dFromAmplitude">amplitude value to convert from, in eFrom units</param>
+            <param name="eTo"></param>
+            <returns>amplitude value in eTo units</returns>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.BaudRate">
+            <summary>
+            Set or get the baudrate for modulation modes such as Sniffer. Note it may be actual baudrate or sample rate depending on modulation type
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.FullModelText">
+            <summary>
+            Human readable text with current HW/firmware configuration received from device or file
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.ConfigurationText">
+            <summary>
+            Human readable text with current running configuration received from device or file
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.AmplitudeTopDBM">
+            <summary>
+            This is the highest value that should be selected for display, includes Offset dBm
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.AmplitudeTopNormalizedDBM">
+            <summary>
+            AmplitudeTop property includes the offset dBm, the normalized one does not
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.AmplitudeBottomDBM">
+            <summary>
+            This is the lowest value that should be selected for display, includes Offset dBm
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.AmplitudeBottomNormalizedDBM">
+            <summary>
+            AmplitudeBottom property includes the offset dBm, the normalized one does not
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFECommunicator.m_bAutoConfigure">
+            <summary>
+            Auto configure is true by default and is used for the communicator to auto request config data to RFE upon port connection
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RBW_KHZ">
+            <summary>
+            RBW in KHZ currently in use, both in analyzer and sniffer
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.ThresholdDBM">
+            <summary>
+            Threshold in dBm used for alarm, sniffer capture, etc
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.AmplitudeOffsetDB">
+            <summary>
+            Manual offset of the amplitude reading to compensate external adjustments
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.PortConnected">
+            <summary>
+            Will be true while COM port is connected, as Serial.IsOpen() is not reliable
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.PortName">
+            <summary>
+            String for name of COM Port
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.PortNameExternal">
+            <summary>
+            String for COM port name of the other connected device.
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFECommunicator.m_TrackingDataContainer">
+            <summary>
+            The main data collection for all Tracking mode accumulated data (except normalized response)
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.SnifferBinaryData">
+            <summary>
+            The sniffer packet data collection
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.SweepData">
+            <summary>
+            The main and only data collection with all the Sweep accumulated data
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.ScreenData">
+            <summary>
+            The main and only collection of screen data
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.ScreenIndex">
+            <summary>
+            Current remote screen data position
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.CaptureRemoteScreen">
+            <summary>
+            True only if we want to capture remote screen data
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.ValidCP2101Ports">
+            <summary>
+            Internal list of valid ports matching Silabs CP2102, note some of these ports may be already used and not really available
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.StartFrequencyMHZ">
+            <summary>
+            Frequency in MHZ for the span start position, used to calculate all other positions together with StepFrequencyMHZ
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.StepFrequencyMHZ">
+            <summary>
+            Analyzer sweep frequency step in MHZ
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.StopFrequencyMHZ">
+            <summary>
+            Calculated span stop frequency in MHZ
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RefFrequencyMHZ">
+            <summary>
+            Reference frequency used for sniffer decoder and other zero span functions
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStartFrequencyMHZ">
+            <summary>
+            Get/Set Signal Generator sweep start frequency in MHZ.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenCWFrequencyMHZ">
+            <summary>
+            Get/Set Signal Generator CW frequency in MHZ.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStepFrequencyMHZ">
+            <summary>
+            Get/Set Signal Generator sweep step frequency in MHZ.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStopFrequencyMHZ">
+            <summary>
+            Get/Set Signal Generator sweep stop frequency in MHZ.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenSweepSteps">
+            <summary>
+            Get/Set Signal Generator sweep steps with valid values in 2-9999.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStepWaitMS">
+            <summary>
+            Get/Set Signal Generator sweep step wait delay in Milliseconds, with a limit of 65,535 max.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenHighPowerSwitch">
+            <summary>
+            Get/Set Signal Generator High Power switch. 
+            This is combined with RFGenHighPowerSwitch in order to define power level for a CW or Sweep command
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenPowerLevel">
+            <summary>
+            Get/Set Signal Generator power level status (0-3). 
+            This is combined with RFGenHighPowerSwitch in order to define power level for a CW or Sweep command
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenPowerON">
+            <summary>
+            Get/Set Signal Generator power on status.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStopHighPowerSwitch">
+            <summary>
+            Get/Set amplitude sweep stop value for Signal Generator High Power Switch
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStopPowerLevel">
+            <summary>
+            Get/Set amplitude sweep stop value for Signal Generator Power Level (0-3)
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStartHighPowerSwitch">
+            <summary>
+            Get/Set amplitude sweep start value for Signal Generator High Power Switch
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStartPowerLevel">
+            <summary>
+            Get/Set amplitude sweep start value for Signal Generator Power Level (0-3)
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.DebugAllReceivedBytes">
+            <summary>
+            Debug string collection for all bytes received from device
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.CleanReceivedBytes">
+            <summary>
+            Clean and reset all debug internal received data bytes
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.DebugSentTracesEnabled">
+            <summary>
+            True when commands sent to RFE must be displayed
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.DebugTracesEnabled">
+            <summary>
+            True when the low level detailed debug traces should be included too
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.Dispose">
+            <summary>
+            Standard Dispose resources
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.Dispose(System.Boolean)">
+            <summary>
+            Local dispose method
+            </summary>
+            <param name="bDisposing">if disposing is required</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsUnixLike">
+            <summary>
+            Returns true if the platform is a Unix-like OS (such as Linux, MacOS, etc) - Returns false if it is Windows
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.#ctor(System.Boolean,System.Boolean)">
+            <summary>
+            Constructs a new communicator object. 
+            </summary>
+            <param name="bIntendedAnalyzer">True if the intended use is an analyzer, false if is a generator</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsFileExtensionType(System.String,System.String)">
+            <summary>
+            will return true if the last chars of the file name are same as file extension, regardless capitals
+            </summary>
+            <param name="sFilename"></param>
+            <param name="sFileExtension"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.CalculateEndFrequencyMHZ">
+            <summary>
+            Calculates the END or STOP frequency of the span, based on Start / Step values.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.UpdateDeviceConfig(System.Double,System.Double,System.Double,System.Double,System.Double)">
+            <summary>
+            Send a new configuration to the connected device
+            </summary>
+            <param name="fStartMHZ">New start frequency, in MHZ, must be in valid range for the device</param>
+            <param name="fEndMHZ">New stop frequency, in MHZ, must be in valid range for the device</param>
+            <param name="fTopDBM">Optional, only impact visual not real data</param>
+            <param name="fBottomDBM">Optional, only impact visual not real data</param>
+            <param name="fRBW_KHZ"></param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.ReceiveThreadfunc">
+            <summary>
+            The secondary thread used to get data from USB/RS232 COM port
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFECommunicator.m_nAverageSweepSpeedIterator">
+            <summary>
+            Processes all strings received and queued by the ReceiveThreadFunc
+            </summary>
+            <param name="bProcessAllEvents">If bProcessAllEvents==false then only one event will be processed, otherwise will do all that are waiting on the queue</param>
+            <param name="sReceivedString">sReceivedString will have the last processed string from the queue</param>
+            <returns>Returns true if an event was received requiring redraw</returns>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.IsMWSUB3G">
+            <summary>
+            Property true if the WSUB3G connected is actually a MWSUB3G. This enables us to work with MWSUB3G same as WSUB3G
+            except in specific places where MWSUB3G code is required. Use this function anytime to know if a WSUB3G is actually a MWSUB3G
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsGenerator(System.Boolean)">
+            <summary>
+            True if the connected object is a Signal Generator model
+            </summary>
+            <param name="bCheckModelAvailable">Use this to "true" in case you want to check actual model, not intended model if still not known
+            - By default you will want this on "false"</param>
+            <returns>true if connected device is a generator, false otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsAnalyzer(System.Boolean)">
+            <summary>
+            Check if the connected object is a Spectrum Analyzer device
+            </summary>
+            <param name="bCheckModelAvailable">Use this to "true" in case you want to check actual model, not intended model if still not known
+            - By default you will want this on "false"</param>
+            <returns>true if connected device is an analyzer, false otherwise</returns>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.AutoStopSNATrackingCounter">
+            <summary>
+            For SNA tracking mode, this setting will indicate how many tracking passes should be done before stop, or 0 for infinite
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.UpdateOfflineConfigurationParameters_Generator(System.String,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="sConfigurationString"></param>
+            <param name="sModel"></param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.UpdateOfflineConfigurationParameters_Analyzer(System.String,System.String)">
+            <summary>
+            This method will parse Spectrum Analyzer configuration and model string read from data file and will update current configuration to match that.
+            Note: for this to work the device must be disconnected, you cannot change runtime parameters if a device is connected
+            Rather than parsing, a better way since the beginning would have been to store each and everyone of the parameters separately in the file but,
+            given that was not the case and to keep backward compatibility with files, we keep the string human readable format
+            and parse it here for machine usability.
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.ResetInternalBuffers">
+            <summary>
+            Use this function to internally re-initialize the MaxHold buffers used for cache data inside the RF Explorer device
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_TrackingStep(System.UInt16)">
+            <summary>
+            Step from 0-9999 to set the tracking configuration
+            </summary>
+            <param name="nStep">step to select analyzer or tracking generator to work on momentarily</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_RequestConfigData">
+            <summary>
+            Request RF Explorer SA device to send configuration data and start sending feed back
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_EnableMainboard">
+            <summary>
+            Enable mainboard module in the RF Explorer SA
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_Hold">
+            <summary>
+            Ask RF Explorer SA device to hold
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_EnableExpansion">
+            <summary>
+            Enable expansion module in the RF Explorer SA
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_ScreenON">
+            <summary>
+            Enable LCD and backlight on device screen (according to internal device configuration settings)
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_ScreenOFF">
+            <summary>
+            Disable LCD and backlight on device screen
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_DisableScreenDump">
+            <summary>
+            Disable device LCD screen dump
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_EnableScreenDump">
+            <summary>
+            Enable device LCD screen dump
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_SweepDataPoints(System.Int32)">
+            <summary>
+            Define RF Explorer SA sweep data points
+            </summary>
+            <param name="nDataPoints">a value in the range of 16-4096, note a value multiple of 16 will be used, so any other number will be truncated to nearest 16 multiple</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_SetMaxHold">
+            <summary>
+            Set RF Explorer SA device in Calculator:MaxHold, this is useful to capture fast transient signals even if the actual Windows application is representing other trace modes
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_Realtime">
+            <summary>
+            Set RF Explorer SA devince in Calculator:Normal, this is useful to minimize spikes and spurs produced by unwanted signals
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_GeneratorRFPowerOFF">
+            <summary>
+            Set RF Explorer RFGen device RF power output to OFF
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_GeneratorRFPowerON">
+            <summary>
+            Set RF Explorer RFGen device RF power output to ON
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand(System.String)">
+            <summary>
+            Format and send command - for instance to reboot just use "r", the '#' decorator and byte length char will be included within
+            </summary>
+            <param name="sData">unformatted command from http://code.google.com/p/rfexplorer/wiki/RFExplorerRS232Interface </param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.WriteRAW(System.Byte[],System.Int32)">
+            <summary>
+            Raw basic data write to Serial Port - use only if you know what you are doing, otherwise use SendCommand
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SaveFileRFE(System.String,System.Boolean)">
+            <summary>
+            Save RF Explorer SA sweep data into .rfe data file
+            </summary>
+            <param name="sFilename">file name with path</param>
+            <param name="bUseCorrection">true to use external calibration correction, false otherwise</param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SaveFileSNANormalization(System.String)">
+            <summary>
+            Save SNA tracking data into a data file
+            </summary>
+            <param name="sFilename">file path for SNA normalization data file</param>
+            <returns>true if succesfully saved, false otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.LoadFileSNANormalization(System.String)">
+            <summary>
+            load a normalization SNA file and reconfigures m_SweepTrackingNormalized based on that
+            </summary>
+            <param name="sFilename">file path for SNA normalization data file</param>
+            <returns>true if succesfully loaded, false otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.LoadFileRFA(System.String)">
+            <summary>
+            Use this to load a correction file (will replace any prior file loaded)
+            </summary>
+            <param name="sFilename">amplitude correction data file path</param>
+            <returns>true if succesfully loaded, false otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.GetAmplitudeCorrectionDB(System.Int32)">
+            <summary>
+            Returns the current correction amplitude value for a given MHZ frequency
+            </summary>
+            <param name="nMHz">frequency reference in MHZ to get correction data from</param>
+            <returns>Amplitude correction data in dB</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.LoadDataFile(System.String)">
+            <summary>
+            Loads a sweep data file, it can be a .RFE sweep data file, a .SNA tracking file or a .SNANORM normalization tracking file
+            This is only valid for analyzer objects. A tracking generator will be updated from SNA if linked to the analyzer, but never call this method
+            from a generator object itself
+            </summary>
+            <param name="sFilename"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.CleanScreenData">
+            <summary>
+            Clean all screen data and reinitialize internal index counter
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.TrackingNormalizingPass">
+            <summary>
+            number of normalization tracking pass completed
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.TrackingPass">
+            <summary>
+            number of tracking pass completed
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.IsTrackingNormalizing">
+            <summary>
+            true if the current tracking mode is for normalization response
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenTrackingCurrentStep">
+            <summary>
+            Current tracking step being measured within the sweep
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.StartTrackingSequence(System.Boolean)">
+            <summary>
+            Start and completes asynchronous tracking sequence, this action is performed on the Analyzer and will internally
+            drive and handle the Generator.
+            </summary>
+            <param name="bNormalize">If true, the sequence will be saved as normalization sequence</param>
+            <returns>true if sequence started correctly, false otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_GeneratorCW">
+            <summary>
+            Start CW generation using current configuration setting values - only valid for Signal Generator models
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_GeneratorSweepFreq(System.Boolean)">
+            <summary>
+            Start Sweep Freq generation using current configuration setting values - only valid for Signal Generator models
+            </summary>
+            <param name="bTracking">default is false, set it to 'true' to enable SNA tracking mode in generator</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_GeneratorSweepAmplitude">
+            <summary>
+            Start Sweep Amplitude generation using current configuration setting values - only valid for Signal Generator models
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.RFGenTrackStepMHZ">
+            <summary>
+            Configured tracking step size in MHZ
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.ForceSetBaudRate(System.String,System.Int32)">
+            <summary>
+            call stty Unix command to setup baudrate. This is the best way for Mono to support custom baudrates not supported by libraries.
+            </summary>
+            <param name="portName">port name such as /dev/tty0</param>
+            <param name="baudRate">baud rate in bps</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.ConnectPort(System.String,System.Int32,System.Boolean)">
+            <summary>
+            Connect serial port and start init sequence if AutoConfigure property is set
+            </summary>
+            <param name="PortName">serial port name, can take any form accepted by OS</param>
+            <param name="nBaudRate">usually 500000 or 2400, can be -1 to not define it and take default setting</param>
+            <param name="bUnix">Default to false. If enabled, will do a Unix call to setup baudrate, required on Linux and Raspbian system, not required in MacOS</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.ClosePort">
+            <summary>
+            Close serial port connection
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.ListAllCOMPorts">
+            <summary>
+            Report data log for all connected compatible serial ports found in the system (valid for Windows only)
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.ShowDetailedCOMPortInfo">
+            <summary>
+            Get/set level of detail when scanning for serial ports
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsRaspberry">
+            <summary>
+            Returns true if the system is found to be a Raspberry Pi
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsMacOS">
+            <summary>
+            Returns true if it is a MacOS computer (internally identified as Darwin in Mono... that's right)
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.MemoryBlockUpdateEvent">
+            <summary>
+            Optional
+            An internal memory block is updated
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.ReportInfoAddedEvent">
+            <summary>
+            Optional
+            This event will fire everytime there is some information human readable to display
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.WrongFormatDataEvent">
+            <summary>
+            Optional
+            This event will fire when a wrong format response is received from RFE
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.DeviceReset">
+            <summary>
+            Optional
+            This event will fire when a string identified as reset is received from RFE
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.ReceivedConfigurationDataEvent">
+            <summary>
+            Required
+            This event will fire when RFE is sending its configuration back. This always come before any data dump starts.
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.ReceivedDeviceModelEvent">
+            <summary>
+            Required
+            This event will fire when RFE is sending global configuration back.
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.SnifferRawDataEvent">
+            <summary>
+            Sniffer RF RAW data decoder packet has been received
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.UpdateDataEvent">
+            <summary>
+            Required
+            This event indicates new data dump has been received from RF Explorer an is ready to be used
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.TrackingNormalizedData">
+            <summary>
+            Sweep data with values of last normalized tracking scan, valid for current configuration
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.GetAllPorts">
+            <summary>
+            set to true to capture all possible COM ports regardless OS or versions
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.UseStringBLOB">
+            <summary>
+            Get or set action to enable/disable storage of string BLOB for later use
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.UseByteBLOB">
+            <summary>
+            Get or set action to enable/disable storage of byte array BLOB for later use
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "P:RFExplorerCommunicator.RFECommunicator.StoreSweep" -->
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsTrackingNormalized">
+            <summary>
+            returns true if the normalization data is available and no item is lower than MIN_AMPLITUDE_TRACKING_NORMALIZE (considered too low for any valid normalization setup)
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.ResetTrackingNormalizedData">
+            <summary>
+            removes any prior loaded normalization data
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.UpdateDataTrakingNormalizationEvent">
+            <summary>
+            Optional
+            This event indicates Tracking Normalization data dump has been received from RF Explorer an is ready to be used
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.UpdateGPSDataEvent">
+            <summary>
+            Optional
+            This event indicates Tracking data dump has been received from RF Explorer an is ready to be used
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.UpdateDataTrakingEvent">
+            <summary>
+            Optional
+            This event indicates Tracking data dump has been received from RF Explorer an is ready to be used
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.UpdateRemoteScreenEvent">
+            <summary>
+            Optional
+            This event indicates new screen dump bitmap has been received from RF Explorer
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.UpdateFeedModeEvent">
+            <summary>
+            This event will fire when the feed mode (real time or hold) has changed
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.PortConnectedEvent">
+            <summary>
+            This event will fire in the event of a communication port is connected
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.PortClosedEvent">
+            <summary>
+            This event will fire in the event of a communication port is closed, either by manual user intervention or by a link error
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFEScreenData">
+            <summary>
+            Class support a single LCD screen data dump. Currently supports 128x8 case only
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFEScreenData.m_Time">
+            <summary>
+            The time when this data was created, it should match as much as possible the real data capture
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFEScreenData.m_eModel">
+            <summary>
+            RF Explorer module enabled when this screen was captured
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFEScreenData.m_arrRemoteScreenData">
+            <summary>
+            Data for a single screen to draw
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEScreenData.ProcessReceivedString(System.String)">
+            <summary>
+            Initialize a monochrome 128x64 LCD of the size pointed by the sLine text received
+            </summary>
+            <param name="sLine">Text as received from the device realtime data</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEScreenData.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initialize a monochrome LCD with standard X * Y size, in bytes. For instance a 128x64 LCD has x=128 bytes and y=(64/8)=8 bytes
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEScreenData.#ctor">
+            <summary>
+            Default constructor
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFEScreenDataCollection">
+            <summary>
+            A collection of consecutive RFEScreenData screens
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEScreenDataCollection.Count">
+            <summary>
+            Returns the total of elements with actual data allocated.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEScreenDataCollection.UpperBound">
+            <summary>
+            Returns the highest valid index of elements with actual data allocated.
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEScreenDataCollection.GetData(System.UInt16)">
+            <summary>
+            Return the data pointed by the zero-starting index
+            </summary>
+            <param name="nIndex"></param>
+            <returns>returns null if no data is available with this index</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEScreenDataCollection.IsFull">
+            <summary>
+            True when the absolute maximum of allowed elements in the container is allocated
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEScreenDataCollection.LoadFile(System.String)">
+            <summary>
+            Will load a RFS standard file from disk. If the file format is incorrect (unknown) will return false but will not invalidate the internal container
+            If there are file exceptions, will be received by the caller so should react with appropriate error control
+            If file is successfully loaded, all previous container data is lost and replaced by data from file
+            </summary>
+            <param name="sFile"></param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFEScreenDataCollection.SaveFile(System.String)">
+            <summary>
+            Saves a file in RFS standard format. Note it will not handle exceptions so the calling application can deal with GUI details
+            </summary>
+            <param name="sFilename"></param>
+        </member>
+        <member name="T:RFExplorerCommunicator.EventReportInfo">
+            <summary>
+            Custom event class to report strings to external listeners
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFEMemoryBlock">
+            <summary>
+            This class represents a basic block of memory, up to 4096 bytes length, with an address within the available memory space, 
+            a total length and a raw memory container
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFEMemoryBlock.m_arrBytes">
+            <summary>
+            Memory container, values out of range are initialized to 0xFF
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFEMemoryBlock.eMemoryType">
+            <summary>
+            Memory type available in RFE devices
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFEMemoryBlock.MemoryType">
+            <summary>
+            Memory type available in RFE devices
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFEMemoryBlock.m_nAddress">
+            <summary>
+            Valid address within the memory space this object is defined. For instance the external FLASH has a range of 2MB
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFEMemoryBlock.m_nSize">
+            <summary>
+            Size of the block in bytes, being MAX_BLOCK_SIZE the maximum value
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFESweepData">
+            <summary>
+            Class support a full sweep of data from RF Explorer, and it is used in the RFESweepDataCollection container
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFESweepData.m_fStartFrequencyMHZ">
+            <summary>
+            Start frequency
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFESweepData.m_fStepFrequencyMHZ">
+            <summary>
+            Step frequency between each sweep step
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFESweepData.m_nTotalSteps">
+            <summary>
+            Total number of sweep steps captured
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFESweepData.m_arrAmplitude">
+            <summary>
+            The actual data container, a consecutive set of dBm amplitude values
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.RFESweepData.m_Time">
+            <summary>
+            The time when this data sweep was created, it should match as much as possible the real data capture
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.ProcessReceivedString(System.String,System.Single,System.Boolean,System.Boolean)">
+            <summary>
+            This function will process a received, full consistent string received from remote device
+            and fill it in all data
+            </summary>
+            <param name="sLine">string received from device, previously parsed and validated</param>
+            <param name="fOffsetDB">currently specified offset in DB</param>
+            <param name="bBLOB">if true the internal BLOB object will be filled in for later use in GetBLOB</param>
+            <param name="bString">if true the internal string object will be filled in for later use in GetBLOBString</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetAmplitudeDBM(System.UInt16)">
+            <summary>
+            Returns amplitude data in dBm. This is the value as it was read from the device or from a file
+            so it is not adjusted by offset or additionally compensated in any way. If the value was read from a device,
+            it may already be an adjusted value including device configured offset.
+            </summary>
+            <param name="nStep">Internal frequency step or bucket to read data from</param>
+            <returns>Value in dBm</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.AddDBOffset(System.Int32)">
+            <summary>
+            This function add a specific dB offset to received data from analyzer
+            </summary>
+            <param name="nDBOffset">dB offset</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetBLOB(System.Byte[]@)">
+            <summary>
+            If selected bBLOB in ProcessReceivedString() then raw scan data is available here in byte array format
+            </summary>
+            <param name="arrBLOB">
+            Returns a byte array compatibly with BLOB on a DB or other byte array uses.
+            Expected to come as NULL, will initialize memory and fill in with data bytes. Will be null if no data available
+            </param>
+            <returns>Returns false if no data available</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetBLOBString">
+            <summary>
+            If selected bString in ProcessReceivedString() then raw scan data is available here in string format
+            </summary>
+            <returns>BLOB string in if available or empty string if not</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.NormalizeAmplitude(RFExplorerCommunicator.RFESweepData)">
+            <summary>
+            Internally adjust the sweep amplitude based on normalized amplitude objNormalizedAmplitudeReference provided
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetAmplitudeDBM(System.UInt16,RFExplorerCommunicator.RFEAmplitudeTableData,System.Boolean)">
+            <summary>
+            Returns amplitude data in dBm. This is the value as it was read from the device or from a file
+            so it is not adjusted by offset or additionally compensated in any way. If the value was read from a device,
+            it may already be an adjusted value including device configured offset.
+            </summary>
+            <param name="nStep">Internal frequency step or bucket to read data from</param>
+            <param name="AmplitudeCorrection">Optional parameter, can be null. If different than null, use the amplitude correction table</param>
+            <param name="bUseCorrection">If the AmplitudeCorrection is not null, this boolean will tell whether to use it or not</param>
+            <returns>Value in dBm</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetMinStep">
+            <summary>
+            Returns the step of the lowest amplitude value found
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetPeakStep">
+            <summary>
+            Returns the step of the highest amplitude value found
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetChannelPowerDBM">
+            <summary>
+            Returns power channel over the full span being captured. The power is instantaneous real time
+            For average power channel use the collection method GetAverageChannelPower().
+            </summary>
+            <returns>channel power in dBm/span</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.Dump">
+            <summary>
+            Dump a CSV string line with sweep data
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.SaveFileCSV(System.String,System.Char,RFExplorerCommunicator.RFEAmplitudeTableData)">
+            <summary>
+            Save a CSV file using one frequency point/dBm value per line
+            </summary>
+            <param name="sFilename">full path filename</param>
+            <param name="cCSVDelimiter">comma delimiter to use</param>
+            <param name="AmplitudeCorrection"></param>
+        </member>
+        <member name="T:RFExplorerCommunicator.RFESweepDataCollection">
+            <summary>
+            A collection of RFESweepData objects, each one with independent Sweep configuration and data points
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFESweepDataCollection.Count">
+            <summary>
+            Returns the total of elements with actual data allocated.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFESweepDataCollection.UpperBound">
+            <summary>
+            Returns the highest valid index of elements with actual data allocated.
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.#ctor(System.UInt32,System.Boolean)">
+            <summary>
+            Allocates up to nCollectionSize elements to start with the container.
+            </summary>
+            <param name="nCollectionSize">Upper limit is RFESweepDataCollection.MAX_ELEMENTS</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.GetData(System.UInt32)">
+            <summary>
+            Return the data pointed by the zero-starting index
+            </summary>
+            <param name="nIndex"></param>
+            <returns>returns null if no data is available with this index</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.IsFull">
+            <summary>
+            True when the absolute maximum of allowed elements in the container is allocated
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.SaveFileCSV(System.String,System.Char,RFExplorerCommunicator.RFEAmplitudeTableData)">
+            <summary>
+            Will write large, complex, multi-sweep CSV file
+            </summary>
+            <param name="sFilename"></param>
+            <param name="cCSVDelimiter"></param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.SaveFile(System.String,System.String,System.String,RFExplorerCommunicator.RFEAmplitudeTableData)">
+            <summary>
+            Saves a file in RFE standard format. Note it will not handle exceptions so the calling application can deal with GUI details
+            Note: if there are sweeps with different start/stop frequencies, only the first one will be saved to disk
+            </summary>
+            <param name="sFilename"></param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.LoadFile(System.String,System.String@,System.String@)">
+            <summary>
+            Will load a RFE standard file from disk. If the file format is incorrect (unknown) will return false but will not invalidate the internal container
+            If there are file exceptions, will be received by the caller so should react with appropriate error control
+            If file is successfully loaded, all previous container data is lost and replaced by data from file
+            </summary>
+            <param name="sFile">File name to load</param>
+            <param name="sModelText">model data text. If it is a normal sweep file, then this comes from spectrum analyzer. If it is tracking or normalization 
+            then this is from both signal generator and spectrum analyzer</param>
+            <param name="sConfigurationText">configuration text. If it is a normal sweep file, then this comes from spectrum analyzer. If it is tracking or normalization 
+            then this is from Signal Generator and some required parameters from spectrum analyzer too.</param>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.ToolGroupCOMPort.UpdateComboBox">
+            <summary>
+            Method to refresh correct Ports availble for device in ComboBox COM Ports
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.ToolGroupCOMPort.UpdateUniversalLayout">
+            <summary>
+            Update layout of the internal controls and set the container
+            </summary>
+        </member>
+        <member name="F:RFExplorerCommunicator.ToolGroupCOMPort.components">
+            <summary> 
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.ToolGroupCOMPort.Dispose(System.Boolean)">
+            <summary> 
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.ToolGroupCOMPort.InitializeComponent">
+            <summary> 
+            Required method for Designer support - do not modify 
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.GroupControl_COMPort.SetUniversalLayout">
+            <summary>
+            Defines layout of the components regardless their prior position
+            </summary>
+        </member>
+        <member name="T:RFExplorerCommunicator.VisualObject">
+            <summary>
+            This class is used to store information about objects which are used on Zedgraph to draw text (in a future other things)
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.VisualObject.X">
+            <summary>
+            Set or Get X axis coordinate of user defined text
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.VisualObject.Y">
+            <summary>
+            Set or Get Y axis coordinate of user defined text
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.VisualObject.Text">
+            <summary>
+            Get or Set user defined text
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.VisualObject.#ctor(System.Single,System.Single,System.String)">
+            <summary>
+            Store chart position and text defined by a user
+            </summary>
+            <param name="fX">X axis of the user defined text position</param>
+            <param name="fY">Y axis of the user defined text position</param>
+            <param name="sText">user defined text</param>
+        </member>
+    </members>
+</doc>
