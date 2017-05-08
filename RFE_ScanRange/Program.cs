@@ -36,6 +36,10 @@ namespace RFE_ScanRange
         static GpioConnection m_pinConnection = null; //GPIO connections for a Raspberry Pi host for IOT board
         static bool g_bIgnoreSweeps = true; //this will signal when expected sweeps are correct configuration, earlier sweeps can be discarded
         static double g_fStartMHZ = 0.0f;
+        static int g_nTotalSeconds = 3600; //1 hour by default
+        static string g_sFileCSV = "";
+        static string g_sFileRFE = "";
+        static UInt32 g_nSweepCounter = 0;
 
         static void Main(string[] args)
         {
@@ -63,11 +67,14 @@ namespace RFE_ScanRange
             g_objRFE.SendCommand_RequestConfigData();
             WaitAndProcess(2, false);
 
+            UpdateSweepTime(args);
+
             //Set working frequency range from command line parameters
             if (SetFrequencyRange(args))
             {
+                UpdateFileNames(args);
                 //If correct, process responses and display output for some seconds
-                WaitAndProcess(30);
+                WaitAndProcess(g_nTotalSeconds);
             }
 
             //Close port and finish
@@ -86,12 +93,17 @@ namespace RFE_ScanRange
             if (bParameters)
                 sData =
                     "Format: " + Environment.NewLine +
-                    "    Console_ConnectRange [/IOT | /p:PORT] [/csv:file_path] StartRangeMHZ StopRangeMHZ" + Environment.NewLine +
+                    "    Console_ConnectRange [/IOT | /p:PORT] [/csv:file_path] [/sweeps:count] StartRangeMHZ StopRangeMHZ" + Environment.NewLine +
                     "where: " + Environment.NewLine +
                     "    /IOT: Connect to a Raspberry Pi assembled RF Explorer IoT board" + Environment.NewLine +
                     "    /p: Connect to a USB port such as COM3 or /dev/ttyUSB0" + Environment.NewLine +
                     "        Using AUTO assumes only RF Explorer connected to USB port" + Environment.NewLine +
-                    "    /csv: Output filename (no extension) to save consecutive scans" + Environment.NewLine +
+                    "    /csv: Output CSV filename (no extension) to save consecutive scans" + Environment.NewLine +
+                    "    /rfe: Output .RFE binary filename (no extension) to save consecutive scans" + Environment.NewLine +
+                    "    /time: total seconds to scan before close automatically. If not specified" + Environment.NewLine +
+                    "       will scan 1 hour and close automatically." + Environment.NewLine +
+                    "       If set to 0 will do one single scan and close automatically." + Environment.NewLine +
+                    "       If set to -1 will run forever." + Environment.NewLine +
                     "    StartRangeMHZ: is a number in range 15-2700MHz to start scan sweep" + Environment.NewLine +
                     "    StopRangeMHZ: is a number in range 15-2700MHz to stop scan sweep" + Environment.NewLine +
                     "       Note: Current limit for full range scanning is up to 1000MHz" + Environment.NewLine +
@@ -128,8 +140,12 @@ namespace RFE_ScanRange
 
         static void WaitAndProcess(int nSeconds, bool bCheckKeyboard=true)
         {
+            bool bRunForever = false;
+            if (nSeconds == -1)
+                bRunForever = true;
+
             DateTime objTimeStart = DateTime.Now;
-            while ((DateTime.Now - objTimeStart).TotalMilliseconds < (nSeconds*1000))
+            do
             {
                 string sDummy; //we do not use the string in this loop
                 //Process all pending messages received from device
@@ -149,7 +165,7 @@ namespace RFE_ScanRange
                         case ConsoleKey.Q:
                             //finish function and therefore end up closing the application
                             Console.WriteLine("<Q> - Closing the application...");
-                            return; 
+                            return;
                         case ConsoleKey.LeftArrow:
                             Console.WriteLine("<LEFT> - Updating scan to lower frequency...");
                             Console.WriteLine("Current configuration - Start:" + g_objRFE.StartFrequencyMHZ.ToString("f3") + "MHZ, Stop: " + g_objRFE.StopFrequencyMHZ.ToString("f3") + "MHz, Span:" + fSpanMHZ.ToString("f3"));
@@ -183,12 +199,15 @@ namespace RFE_ScanRange
                         g_objRFE.UpdateDeviceConfig(fStartMHz, fStartMHz + fSpanMHZ, g_objRFE.AmplitudeTopDBM, g_objRFE.AmplitudeBottomDBM);
                     }
                 }
-            }
+            } while (bRunForever || ((DateTime.Now - objTimeStart).TotalSeconds < nSeconds));
+            //save file before closing, if any.
+            SaveRFEFile();
         }
 
         static void OnRFE_ReceivedConfigData(object sender, EventArgs e)
         {
             Console.WriteLine("-------- Received config settings");
+            SaveRFEFile();
             //we do not want mixed data sweep values, so clean old ones
             g_objRFE.SweepData.CleanAll(); 
             //Check if configuration being received is that being expected
@@ -196,13 +215,35 @@ namespace RFE_ScanRange
                 g_bIgnoreSweeps = false;
         }
 
+        static void SaveRFEFile()
+        {
+            if (!String.IsNullOrEmpty(g_sFileRFE) && g_objRFE.SweepData.Count>0)
+            {
+                string sFile = g_sFileRFE + "_" + g_nSweepCounter.ToString("000") + "_" + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss") + ".rfe";
+                g_objRFE.SaveFileRFE(sFile, false);
+                Console.WriteLine("Saved file " + g_sFileRFE);
+            }
+        }
+
         static void OnRFE_UpdateData(object sender, EventArgs e)
         {
             if (!g_bIgnoreSweeps)
             {
                 RFESweepData objSweep = g_objRFE.SweepData.GetData(g_objRFE.SweepData.Count - 1);
+                g_nSweepCounter++;
                 ushort nPeak = objSweep.GetPeakStep();
                 Console.WriteLine("Sweep: " + g_objRFE.SweepData.Count.ToString("D3") + " Peak: " + objSweep.GetFrequencyMHZ(nPeak).ToString("f3") + "MHz " + objSweep.GetAmplitudeDBM(nPeak).ToString("f1") + "dBm");
+                if (!String.IsNullOrEmpty(g_sFileCSV))
+                {
+                    string sFile = g_sFileCSV + "_" + g_nSweepCounter.ToString("0000") + "_" + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss") + ".csv";
+                    objSweep.SaveFileCSV(sFile, '\t', null);
+                    Console.WriteLine("Saved file " + g_sFileCSV);
+                }
+                if (g_objRFE.SweepData.Count>100)
+                {
+                    SaveRFEFile();
+                    g_objRFE.SweepData.CleanAll();
+                }
             }
         }
 
@@ -264,6 +305,44 @@ namespace RFE_ScanRange
             }
 
             return bOk;
+        }
+
+        static void UpdateSweepTime(string[] args)
+        {
+            string sTime = FindOptionValue(args, "/time:");
+            if (!String.IsNullOrEmpty(sTime))
+            {
+                g_nTotalSeconds = Convert.ToInt32(sTime);
+                Console.WriteLine("Time option: " + g_nTotalSeconds);
+            }
+        }
+        static void UpdateFileNames(string[] args)
+        {
+            string sFile = FindOptionValue(args, "/csv:");
+            if (!String.IsNullOrEmpty(sFile))
+            {
+                g_sFileCSV = sFile;
+                Console.WriteLine("CSV file path: " + g_sFileCSV);
+            }
+
+            sFile = FindOptionValue(args, "/rfe:");
+            if (!String.IsNullOrEmpty(sFile))
+            {
+                g_sFileRFE = sFile;
+                Console.WriteLine("RFE file path: " + g_sFileRFE);
+            }
+        }
+
+        static string FindOptionValue(string[] args, string sOption)
+        {
+            string sResult = "";
+            //Use specified port from command line
+            int nPos = Array.FindIndex(args, x => x.StartsWith(sOption, StringComparison.Ordinal));
+            if (nPos >= 0)
+            {
+                sResult = args[nPos].Replace(sOption, "");
+            }
+            return sResult;
         }
 
         static bool IsIOT(string[] args)
