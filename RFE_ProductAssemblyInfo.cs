@@ -1,6 +1,6 @@
 //============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-16 Ariel Rocholl, www.rf-explorer.com
+//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyCompany("RF Explorer")]
 [assembly: AssemblyProduct("RF Explorer for Windows")]
-[assembly: AssemblyCopyright("Copyright © Ariel Rocholl 2010-2016")]
+[assembly: AssemblyCopyright("Copyright © Ariel Rocholl 2010-2017")]
 [assembly: AssemblyTrademark("RF Explorer (tm)")]
 [assembly: AssemblyCulture("")]
 

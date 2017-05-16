@@ -1073,13 +1073,14 @@
             <param name="portName">port name such as /dev/tty0</param>
             <param name="baudRate">baud rate in bps</param>
         </member>
-        <member name="M:RFExplorerCommunicator.RFECommunicator.ConnectPort(System.String,System.Int32,System.Boolean)">
+        <member name="M:RFExplorerCommunicator.RFECommunicator.ConnectPort(System.String,System.Int32,System.Boolean,System.Boolean)">
             <summary>
             Connect serial port and start init sequence if AutoConfigure property is set
             </summary>
             <param name="PortName">serial port name, can take any form accepted by OS</param>
             <param name="nBaudRate">usually 500000 or 2400, can be -1 to not define it and take default setting</param>
             <param name="bUnix">Default to false. If enabled, will do a Unix call to setup baudrate, required on Linux and Raspbian system, not required in MacOS</param>
+            <param name="bForceBaudrate">Default to false. If enabled, will do a Unix call to setup baudrate, required on Linux and Raspbian system required when using -1 in baudrate</param>
         </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.ClosePort">
             <summary>

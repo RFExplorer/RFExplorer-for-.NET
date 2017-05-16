@@ -50,6 +50,7 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
     <DocumentationFile>bin\x86\Release\RFExplorerCommunicator.XML</DocumentationFile>
+    <NoWarn>CS1570,CS1591,CS1573,CS1572,CS1587,MSB3884</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

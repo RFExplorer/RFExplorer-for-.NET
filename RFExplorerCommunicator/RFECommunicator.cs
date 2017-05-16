@@ -1,6 +1,6 @@
 //============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-16 Ariel Rocholl, www.rf-explorer.com
+//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -2323,7 +2323,7 @@ namespace RFExplorerCommunicator
                                 }
                                 OnUpdateGPSData(new EventArgs());
                             }
-                            else if ((sLine.Length > 2) && (sLine.Substring(0, 2) == "$S") && (StartFrequencyMHZ > 0.1))
+                            else if ((sLine.Length > 2) && (sLine.Substring(0, 2) == "$S") && (StartFrequencyMHZ > 0.01))
                             {
                                 bWrongFormat = true;
                             }
@@ -2680,7 +2680,7 @@ namespace RFExplorerCommunicator
         /// <param name="nDataPoints">a value in the range of 16-4096, note a value multiple of 16 will be used, so any other number will be truncated to nearest 16 multiple</param>
         public void SendCommand_SweepDataPoints(int nDataPoints)
         {
-            SendCommand("CJ" + Convert.ToChar(nDataPoints / 16));
+            SendCommand("CJ" + Convert.ToChar((nDataPoints-16) / 16));
         }
 
         /// <summary>
@@ -3233,20 +3233,20 @@ namespace RFExplorerCommunicator
             }
         }
 
-
         /// <summary>
         /// Connect serial port and start init sequence if AutoConfigure property is set
         /// </summary>
         /// <param name="PortName">serial port name, can take any form accepted by OS</param>
         /// <param name="nBaudRate">usually 500000 or 2400, can be -1 to not define it and take default setting</param>
         /// <param name="bUnix">Default to false. If enabled, will do a Unix call to setup baudrate, required on Linux and Raspbian system, not required in MacOS</param>
-        public void ConnectPort(string PortName, int nBaudRate, bool bUnix = false)
+        /// <param name="bForceBaudrate">Default to false. If enabled, will do a Unix call to setup baudrate, required on Linux and Raspbian system required when using -1 in baudrate</param>
+        public void ConnectPort(string PortName, int nBaudRate, bool bUnix = false, bool bForceBaudrate = false)
         {
             try
             {
                 Monitor.Enter(m_serialPortObj);
 
-                if (nBaudRate != -1)
+                if ((nBaudRate != -1) && !bForceBaudrate)
                     m_serialPortObj.BaudRate = nBaudRate;
                 m_serialPortObj.DataBits = 8;
                 m_serialPortObj.StopBits = StopBits.One;
@@ -3284,7 +3284,7 @@ namespace RFExplorerCommunicator
                 Monitor.Exit(m_serialPortObj);
             }
 
-            if (m_bPortConnected && (nBaudRate > 115200) && bUnix)
+            if (m_bPortConnected && ((nBaudRate > 115200) || bForceBaudrate) && bUnix)
             {
                 //For unix we now force to value we want in the actual OS
                 ForceSetBaudRate(PortName, nBaudRate);
@@ -3582,9 +3582,18 @@ namespace RFExplorerCommunicator
             m_arrValidCP2102Ports = null;
 
             List<string> listValidPorts = new List<string>();
-            if (!IsRaspberry())
+            if (IsRaspberry() && g_bIsIOT)
             {
-                //only check this in a true linux box, as a raspberry will not use a USB necesarily
+                //If it is IOT mode, check for AMA port
+                foreach (string sPortName in m_arrConnectedPorts)
+                {
+                    if (sPortName.Contains("AMA"))
+                        listValidPorts.Add(sPortName);
+                }
+            }
+            else
+            {
+                //only check this in a true linux box or a Raspberry not using IOT mode
                 foreach (string sPortName in m_arrConnectedPorts)
                 {
                     if (sPortName.Length > 0 && sPortName.Contains("USB"))
@@ -3595,14 +3604,6 @@ namespace RFExplorerCommunicator
                             ReportLog("Valid USB port: " + sPortName);
                         }
                     }
-                }
-            }
-            else
-            {
-                foreach (string sPortName in m_arrConnectedPorts)
-                {
-                    if (sPortName.Contains("AMA"))
-                        listValidPorts.Add(sPortName);
                 }
             }
             m_arrValidCP2102Ports = listValidPorts.ToArray();
