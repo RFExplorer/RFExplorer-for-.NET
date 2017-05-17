@@ -80,11 +80,14 @@ namespace RFExplorerCommunicator
         {
             m_Time = DateTime.Now;
             m_nTotalSteps = nTotalSteps;
-            m_fStartFrequencyMHZ = StartFreqMHZ;
-            m_fStepFrequencyMHZ = StepFreqMHZ;
+
+            //We need truncate 3 position of decimal value to avoid acumulative issues for 1G+ calibration
+            m_fStartFrequencyMHZ = ((double)((int)Math.Round(StartFreqMHZ * 1000.0))) / 1000.0;
+            m_fStepFrequencyMHZ = ((double)((int)Math.Round(StepFreqMHZ * 1000.0))) / 1000.0;
+
             m_arrAmplitude = new float[m_nTotalSteps];
             for (int nInd = 0; nInd < m_nTotalSteps; nInd++)
-                m_arrAmplitude[nInd] = RFECommunicator.MIN_AMPLITUDE_DBM;
+                m_arrAmplitude[nInd] = RFECommunicator.MIN_AMPLITUDE_DBM - 100;
         }
 
         //variable used to internall store byte array received if is used externally
@@ -697,7 +700,7 @@ namespace RFExplorerCommunicator
         /// Note: if there are sweeps with different start/stop frequencies, only the first one will be saved to disk
         /// </summary>
         /// <param name="sFilename"></param>
-        public void SaveFile(string sFilename, string sModelText, string sConfigurationText, RFEAmplitudeTableData AmplitudeCorrection)
+        public void SaveFile(string sFilename, string sModelText, string sConfigurationText, RFEAmplitudeTableData AmplitudeCorrection, double fFrequencyOffsetMHZ)
         {
             if (m_nUpperBound < 0)
             {
@@ -883,8 +886,8 @@ namespace RFExplorerCommunicator
 
         public void GetTopBottomDataRange(out double dTopRangeDBM, out double dBottomRangeDBM, RFEAmplitudeTableData AmplitudeCorrection)
         {
-            dTopRangeDBM = RFECommunicator.MIN_AMPLITUDE_DBM;
-            dBottomRangeDBM = RFECommunicator.MAX_AMPLITUDE_DBM;
+            dTopRangeDBM = RFECommunicator.MIN_AMPLITUDE_DBM - 100f;
+            dBottomRangeDBM = RFECommunicator.MAX_AMPLITUDE_DBM + 100f;
 
             if (m_nUpperBound <= 0)
                 return;

@@ -72,6 +72,7 @@ namespace RFExplorerCommunicator
                 {
                     m_bCollapsed = value;
                     UpdateCollapse();
+                    OnCollapseButtonClickEvent(new EventArgs());
                 }
             }
         }
