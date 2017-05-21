@@ -79,6 +79,12 @@ Example storing /csv files into c:\temp\csv folder with name samples_xxxx.csv au
 
     RFExplorer_ScanRange.exe /p:COM3 200 300 /csv:\c:\temp\csv\samples
     
+Examples Linux
+--------------
+
+Same as Windows examples, but you should use "sudo mono RFExplorer_ScanRange.exe" in replacement of RFExplorer_ScanRange.exe
+    
+    
 Examples Raspberry Pi IOT
 -------------------------
 
@@ -110,9 +116,3 @@ Mono versions suggested:
     * Raspberry Pi: already installed in official IoT images - check www.rf-explorer.com/downloads
     * MacOS X: version 4.8.0 available on this link: http://micro-aruba.arocholl.com/download/sw/mac/MonoFramework-MDK-4.8.0.520.macos10.xamarin.universal.pkg
     * Linux: any latest version available for your Distro - check "yum", "apt-get" or equivalent tool.
-
-Examples Linux
---------------
-
-Same as Windows examples, but you should use "sudo mono RFExplorer_ScanRange.exe" in replacement of RFExplorer_ScanRange.exe
-
