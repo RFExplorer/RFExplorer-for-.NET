@@ -505,6 +505,16 @@
             Get or set DSP mode
             </summary>
         </member>
+        <member name="F:RFExplorerCommunicator.RFECommunicator.m_arrInputStageOffsetDB">
+            <summary>
+            Values used to compensate input stage data sent by device, which is defined at 8bits limit
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.InputStage">
+            <summary>
+            Get or set InputStage in available models (do not use from incompatible models)
+            </summary>
+        </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.Calculator">
             <summary>
             Get the currently configured calculator in the device
@@ -564,6 +574,36 @@
             <param name="eTo"></param>
             <returns>amplitude value in eTo units</returns>
         </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.CalculatePowerChannel(System.UInt16,System.Double,System.Double,RFExplorerCommunicator.RFECommunicator.RFExplorerSignalType,RFExplorerCommunicator.RFECommunicator.eAmplitudeUnit)">
+            <summary>
+            Returns power channel over the selected bandwith captured. The power is instantaneous real time
+            </summary>
+            <param name="nSweepIndex">Number of selected SweepData</param>
+            <param name="fStartMHZ">Initial Frequency of Channel</param>
+            <param name="fEndMHZ">Final Frequency of Channel</param>
+            <param name="eSignalType">Enum of Sygnal Type</param>
+            <param name="eAmplitudeUnit">Enum of current unit of Amplitude</param>
+            <returns>Channel power in currentUnit/span</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.CalculatePowerChannelDBM(System.UInt16,System.Double,System.Double,RFExplorerCommunicator.RFECommunicator.RFExplorerSignalType)">
+            <summary>
+            Returns power channel over the selected bandwith captured. The power is instantaneous real time
+            </summary>
+            <param name="nSweepIndex">Number of selected SweepData</param>
+            <param name="fStartMHZ">Initial Frequency of Channel</param>
+            <param name="fEndMHZ">Final Frequency of Channel</param>
+            <param name="eSignalType">Enum of Sygnal Type</param>
+            <returns>channel power in dBm/span</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.CalculatePowerChannelDBM(System.Collections.Generic.List{System.Drawing.PointF},System.UInt16,System.UInt16)">
+            <summary>
+            Returns power channel over the selected points captured. 
+            </summary>
+            <param name="listPoints">List with PointF to contain amplitude of signal</param>
+            <param name="nStart">Sample to start</param>
+            <param name="nEnd">Sample to finish</param>
+            <returns>channel power in dBm/span</returns>
+        </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.BaudRate">
             <summary>
             Set or get the baudrate for modulation modes such as Sniffer. Note it may be actual baudrate or sample rate depending on modulation type
@@ -617,6 +657,11 @@
         <member name="P:RFExplorerCommunicator.RFECommunicator.AmplitudeOffsetDB">
             <summary>
             Manual offset of the amplitude reading to compensate external adjustments
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.FrequencyOffsetMHZ">
+            <summary>
+            Manual offset of the frequency reading to compensate external adjustments. Only available in RF Explorer client
             </summary>
         </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.PortConnected">
@@ -674,6 +719,11 @@
             Frequency in MHZ for the span start position, used to calculate all other positions together with StepFrequencyMHZ
             </summary>
         </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.StartFrequencyNormalizedMHZ">
+            <summary>
+            Include offset, it is the frequency in MHZ for the span start position, used to calculate all other positions together with StepFrequencyMHZ
+            </summary>
+        </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.StepFrequencyMHZ">
             <summary>
             Analyzer sweep frequency step in MHZ
@@ -683,6 +733,30 @@
             <summary>
             Calculated span stop frequency in MHZ
             </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.StopFrequencyNormalizedMHZ">
+            <summary>
+            Include frequency offset. Calculates the END or STOP frequency of the span, based on Start / Step values.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.CalculateFrequencySpanMHZ">
+            <summary>
+            Calculate frequency span, based on Step frequency MHz / Freq Spectrum steps
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.CalculateCenterFrequencyMHZ">
+            <summary>
+            Calculates the center frequency of the span, based on Start / span values.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.CalculateCenterFrequencyNormalizedMHZ">
+            <summary>
+            Include frequency start offset.Calculates the center frequency of the span, based on Start / span values.
+            </summary>
+            <returns></returns>
         </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.RefFrequencyMHZ">
             <summary>
@@ -889,6 +963,11 @@
             </summary>
             <param name="nStep">step to select analyzer or tracking generator to work on momentarily</param>
         </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_TrackingConfig(System.Double,System.Double)">
+            <summary>
+            Request RF Explorer to enter tracking mode
+            </summary>
+        </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_RequestConfigData">
             <summary>
             Request RF Explorer SA device to send configuration data and start sending feed back
@@ -954,6 +1033,12 @@
             <summary>
             Set RF Explorer RFGen device RF power output to ON
             </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_AmplitudeOffsetDB(System.Double)">
+            <summary>
+            Set a new amplitude offset in dB. The firmware v1.16 and older does not return configuration so a #C0 is required 
+            </summary>
+            <param name="nbOffsetDB"></param>
         </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand(System.String)">
             <summary>
@@ -1502,7 +1587,7 @@
             <param name="sFilename"></param>
             <param name="cCSVDelimiter"></param>
         </member>
-        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.SaveFile(System.String,System.String,System.String,RFExplorerCommunicator.RFEAmplitudeTableData)">
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.SaveFile(System.String,System.String,System.String,RFExplorerCommunicator.RFEAmplitudeTableData,System.Double)">
             <summary>
             Saves a file in RFE standard format. Note it will not handle exceptions so the calling application can deal with GUI details
             Note: if there are sweeps with different start/stop frequencies, only the first one will be saved to disk
