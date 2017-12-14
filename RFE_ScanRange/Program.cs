@@ -243,7 +243,7 @@ namespace RFE_ScanRange
             if (!g_bIgnoreSweeps)
             {
                 g_nSweepCounter++;
-                ushort nPeak = objSweep.GetPeakStep();
+                ushort nPeak = objSweep.GetPeakDataPoint();
                 Console.WriteLine("Sweep: " + g_objRFE.SweepData.Count.ToString("D3") + " Peak: " + objSweep.GetFrequencyMHZ(nPeak).ToString("f3") + "MHz " + objSweep.GetAmplitudeDBM(nPeak).ToString("f1") + "dBm");
                 if (!String.IsNullOrEmpty(g_sFileCSV))
                 {

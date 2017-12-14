@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-13 Ariel Rocholl, www.rf-explorer.com
+//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -80,7 +80,7 @@ namespace RFExplorerSimpleClient
             RFESweepData objData = m_objRFE.SweepData.GetData(m_objRFE.SweepData.Count - 1);
             if (objData != null)
             {
-                UInt16 nPeak = objData.GetPeakStep();
+                UInt16 nPeak = objData.GetPeakDataPoint();
 
                 labelFrequency.Text = objData.GetFrequencyMHZ(nPeak).ToString("f3") + " MHZ";
                 labelAmplitude.Text = objData.GetAmplitudeDBM(nPeak).ToString("f2") + " dBm";

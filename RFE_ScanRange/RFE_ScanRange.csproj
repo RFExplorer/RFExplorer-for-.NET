@@ -53,16 +53,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Raspberry.IO">
-      <HintPath>..\..\..\windows\Libraries\raspberry-sharp-io\Raspberry.IO.GeneralPurpose\bin\Release\Raspberry.IO.dll</HintPath>
+      <HintPath>bin\Release\Raspberry.IO.dll</HintPath>
     </Reference>
     <Reference Include="Raspberry.IO.GeneralPurpose">
-      <HintPath>..\..\..\windows\Libraries\raspberry-sharp-io\Raspberry.IO.GeneralPurpose\bin\Release\Raspberry.IO.GeneralPurpose.dll</HintPath>
+      <HintPath>bin\Release\Raspberry.IO.GeneralPurpose.dll</HintPath>
     </Reference>
     <Reference Include="Raspberry.IO.Interop">
-      <HintPath>..\..\..\windows\Libraries\raspberry-sharp-io\Raspberry.IO.GeneralPurpose\bin\Release\Raspberry.IO.Interop.dll</HintPath>
+      <HintPath>bin\Release\Raspberry.IO.Interop.dll</HintPath>
     </Reference>
     <Reference Include="Raspberry.System">
-      <HintPath>..\..\..\windows\Libraries\raspberry-sharp-system\Raspberry.System\bin\Release\Raspberry.System.dll</HintPath>
+      <HintPath>bin\Release\Raspberry.System.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

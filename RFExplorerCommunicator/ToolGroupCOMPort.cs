@@ -198,7 +198,7 @@ namespace RFExplorerCommunicator
                     m_objRFE.ConnectPort(csCOMPort, Convert.ToInt32(m_ComboBaudRate.SelectedItem.ToString()));
 
                     m_objRFE.HoldMode = false;
-                    //m_groupControl_Connection.m_CollGroupBox.Collapsed = true;
+                    //m_groupControl_Connection.m_CollGroupBox.Collapsed = true;                    
                     UpdateButtonStatus();
                     OnPortConnected(new EventArgs());
                 }
@@ -215,6 +215,7 @@ namespace RFExplorerCommunicator
         {
             Cursor.Current = Cursors.WaitCursor;
             m_objRFE.ClosePort();
+            Uncollapse();
             UpdateComboBox();
             UpdateButtonStatus();
             OnPortClosed(new EventArgs());
@@ -282,7 +283,21 @@ namespace RFExplorerCommunicator
             m_groupControl_Connection.SetUniversalLayout();
         }
 
+        /// <summary>
+        ///Collapse the groupbox programmatically
+        /// </summary>
+        public void Collapse()
+        {
+            m_groupControl_Connection.m_CollGroupBox.Collapsed = true;
+        }
 
+        /// <summary>
+        ///Uncollapse the groupbox programmatically
+        /// </summary>
+        public void Uncollapse()
+        {
+            m_groupControl_Connection.m_CollGroupBox.Collapsed = false;
+        }
         #endregion
 
         #region Private Events and methods

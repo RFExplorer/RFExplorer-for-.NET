@@ -32,7 +32,11 @@ namespace RFExplorerCommunicator
             public double fStepMHZ;
             public double fAmplitudeTopDBM;
             public double fAmplitudeBottomDBM;
-            public UInt16 nFreqSpectrumSteps;
+            private UInt16 nFreqSpectrumDataPoints;   
+            public UInt16 FreqSpectrumSteps
+            {
+                get { return (UInt16)(nFreqSpectrumDataPoints - 1); }
+            }
             public bool bExpansionBoardActive;
             public eMode eMode;
             public eModulation eModulation;
@@ -64,7 +68,7 @@ namespace RFExplorerCommunicator
                 fStepMHZ = 0.0;
                 fAmplitudeTopDBM = 0.0;
                 fAmplitudeBottomDBM = 0.0;
-                nFreqSpectrumSteps = 0;
+                nFreqSpectrumDataPoints = 0;
                 bExpansionBoardActive = false;
                 eMode = eMode.MODE_NONE;
                 fMinFreqMHZ = 0.0;
@@ -97,7 +101,7 @@ namespace RFExplorerCommunicator
                 fStepMHZ = objSource.fStepMHZ;
                 fAmplitudeTopDBM = objSource.fAmplitudeTopDBM;
                 fAmplitudeBottomDBM = objSource.fAmplitudeBottomDBM;
-                nFreqSpectrumSteps = objSource.nFreqSpectrumSteps;
+                nFreqSpectrumDataPoints = objSource.nFreqSpectrumDataPoints;
                 bExpansionBoardActive = objSource.bExpansionBoardActive;
                 eMode = objSource.eMode;
                 fMinFreqMHZ = objSource.fMinFreqMHZ;
@@ -141,11 +145,11 @@ namespace RFExplorerCommunicator
                         int nPos = 32;
                         if (sLine.StartsWith("#C2-f:"))
                         {
-                            nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(nPos, 5));
+                            nFreqSpectrumDataPoints = Convert.ToUInt16(sLine.Substring(nPos, 5));
                             nPos++;
                         }
                         else
-                            nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(nPos, 4));
+                            nFreqSpectrumDataPoints = Convert.ToUInt16(sLine.Substring(nPos, 4));
                         nPos += 4; //we use this variable to keep state for long step number
 
                         bExpansionBoardActive = (sLine[nPos + 1] == '1');
@@ -167,7 +171,7 @@ namespace RFExplorerCommunicator
                             eCalculator = (eCalculator)Convert.ToUInt16(sLine.Substring(nPos + 42, 3));
                         }
                     }
-                    else if ((sLine.Length >= 29) && (sLine.Substring(0, 4) == "#C3-"))
+                    else if ((sLine.Length >= 29) && (sLine.StartsWith("#C3-")))
                     {
                         //Signal generator CW, SweepFreq and SweepAmp modes
                         switch (sLine[4])
@@ -176,7 +180,7 @@ namespace RFExplorerCommunicator
                                 {
                                     fStartMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
                                     fRFEGenCWFreqMHZ = Convert.ToInt32(sLine.Substring(14, 7)) / 1000.0;  //Note it comes in KHZ
-                                    nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(22, 4));
+                                    nFreqSpectrumDataPoints = (UInt16)(Convert.ToUInt16(sLine.Substring(22, 4)) + 1); //From generator it receives steps so we add 1
                                     fStepMHZ = Convert.ToInt32(sLine.Substring(27, 7)) / 1000.0;  //Note it comes in KHZ
                                     bRFEGenHighPowerSwitch = (sLine[35] == '1');
                                     nRFEGenPowerLevel = Convert.ToByte(sLine[37] - 0x30);
@@ -208,7 +212,7 @@ namespace RFExplorerCommunicator
                                 {
                                     //Sweep Frequency mode
                                     fStartMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
-                                    nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(14, 4));
+                                    nFreqSpectrumDataPoints = (UInt16)(Convert.ToUInt16(sLine.Substring(14, 4)) + 1); //From generator it receives steps so we add 1
                                     fStepMHZ = Convert.ToInt32(sLine.Substring(19, 7)) / 1000.0;  //Note it comes in KHZ
                                     bRFEGenHighPowerSwitch = (sLine[27] == '1');
                                     nRFEGenPowerLevel = Convert.ToByte(sLine[29] - 0x30);
@@ -221,7 +225,7 @@ namespace RFExplorerCommunicator
                                 {
                                     //Normal CW mode
                                     fRFEGenCWFreqMHZ = Convert.ToInt32(sLine.Substring(14, 7)) / 1000.0;  //Note it comes in KHZ
-                                    nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(22, 4));
+                                    nFreqSpectrumDataPoints = (UInt16)(Convert.ToUInt16(sLine.Substring(22, 4)) + 1); //From generator it receives steps so we add 1
                                     fStepMHZ = Convert.ToInt32(sLine.Substring(27, 7)) / 1000.0;  //Note it comes in KHZ
                                     bRFEGenHighPowerSwitch = (sLine[35] == '1');
                                     nRFEGenPowerLevel = Convert.ToByte(sLine[37] - 0x30);
