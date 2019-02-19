@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-13 Ariel Rocholl, www.rf-explorer.com
+//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -59,6 +59,10 @@ namespace RFExplorerSimpleClient
             this.comboBoxPortsRFExplorer = new System.Windows.Forms.ComboBox();
             this.m_chkDebug = new System.Windows.Forms.CheckBox();
             this.m_edRFEReportLog = new System.Windows.Forms.TextBox();
+            this.btnCommandA = new System.Windows.Forms.Button();
+            this.btnCommandB = new System.Windows.Forms.Button();
+            this.btnCommandC = new System.Windows.Forms.Button();
+            this.btnCommandD = new System.Windows.Forms.Button();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -174,7 +178,7 @@ namespace RFExplorerSimpleClient
             // m_chkDebug
             // 
             this.m_chkDebug.AutoSize = true;
-            this.m_chkDebug.Location = new System.Drawing.Point(12, 126);
+            this.m_chkDebug.Location = new System.Drawing.Point(12, 138);
             this.m_chkDebug.Name = "m_chkDebug";
             this.m_chkDebug.Size = new System.Drawing.Size(108, 17);
             this.m_chkDebug.TabIndex = 61;
@@ -185,19 +189,63 @@ namespace RFExplorerSimpleClient
             // m_edRFEReportLog
             // 
             this.m_edRFEReportLog.BackColor = System.Drawing.Color.White;
-            this.m_edRFEReportLog.Location = new System.Drawing.Point(12, 149);
+            this.m_edRFEReportLog.Location = new System.Drawing.Point(12, 167);
             this.m_edRFEReportLog.Multiline = true;
             this.m_edRFEReportLog.Name = "m_edRFEReportLog";
             this.m_edRFEReportLog.ReadOnly = true;
-            this.m_edRFEReportLog.Size = new System.Drawing.Size(466, 201);
+            this.m_edRFEReportLog.Size = new System.Drawing.Size(466, 183);
             this.m_edRFEReportLog.TabIndex = 62;
             this.m_edRFEReportLog.Visible = false;
             // 
+            // btnCommandA
+            // 
+            this.btnCommandA.Location = new System.Drawing.Point(162, 126);
+            this.btnCommandA.Name = "btnCommandA";
+            this.btnCommandA.Size = new System.Drawing.Size(75, 35);
+            this.btnCommandA.TabIndex = 63;
+            this.btnCommandA.Text = "Command A";
+            this.btnCommandA.UseVisualStyleBackColor = true;
+            this.btnCommandA.Click += new System.EventHandler(this.OnCommandA_Click);
+            // 
+            // btnCommandB
+            // 
+            this.btnCommandB.Location = new System.Drawing.Point(241, 126);
+            this.btnCommandB.Name = "btnCommandB";
+            this.btnCommandB.Size = new System.Drawing.Size(75, 35);
+            this.btnCommandB.TabIndex = 64;
+            this.btnCommandB.Text = "Command B";
+            this.btnCommandB.UseVisualStyleBackColor = true;
+            this.btnCommandB.Click += new System.EventHandler(this.OnCommandB_Click);
+            // 
+            // btnCommandC
+            // 
+            this.btnCommandC.Location = new System.Drawing.Point(322, 126);
+            this.btnCommandC.Name = "btnCommandC";
+            this.btnCommandC.Size = new System.Drawing.Size(75, 35);
+            this.btnCommandC.TabIndex = 65;
+            this.btnCommandC.Text = "Command C";
+            this.btnCommandC.UseVisualStyleBackColor = true;
+            this.btnCommandC.Click += new System.EventHandler(this.OnCommandC_Click);
+            // 
+            // btnCommandD
+            // 
+            this.btnCommandD.Location = new System.Drawing.Point(403, 126);
+            this.btnCommandD.Name = "btnCommandD";
+            this.btnCommandD.Size = new System.Drawing.Size(75, 35);
+            this.btnCommandD.TabIndex = 66;
+            this.btnCommandD.Text = "Command D";
+            this.btnCommandD.UseVisualStyleBackColor = true;
+            this.btnCommandD.Click += new System.EventHandler(this.OnCommandD_Click);
+            // 
             // SimpleMainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(492, 149);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            this.ClientSize = new System.Drawing.Size(492, 167);
+            this.Controls.Add(this.btnCommandD);
+            this.Controls.Add(this.btnCommandC);
+            this.Controls.Add(this.btnCommandB);
+            this.Controls.Add(this.btnCommandA);
             this.Controls.Add(this.m_edRFEReportLog);
             this.Controls.Add(this.m_chkDebug);
             this.Controls.Add(this.groupBox2);
@@ -229,6 +277,10 @@ namespace RFExplorerSimpleClient
         private System.Windows.Forms.ComboBox comboBoxPortsRFExplorer;
         private System.Windows.Forms.CheckBox m_chkDebug;
         private System.Windows.Forms.TextBox m_edRFEReportLog;
+        private System.Windows.Forms.Button btnCommandA;
+        private System.Windows.Forms.Button btnCommandB;
+        private System.Windows.Forms.Button btnCommandC;
+        private System.Windows.Forms.Button btnCommandD;
     }
 }
 

@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
+//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Globalization;
 
 namespace RFExplorerCommunicator
 {
@@ -273,15 +274,21 @@ namespace RFExplorerCommunicator
 
                     if (sLine.Substring(0, 2) != "--")
                     {
+                        if (sLine.Contains(","))
+                        {
+                            //From octuber 2017, we want files with "en-US" as regional settings
+                            return false;
+                        }
                         string[] arrStrings = sLine.Split(' ');
                         if (arrStrings.Length >= 2)
                         {
                             int nMHZ = Convert.ToInt16(arrStrings[0]);
-                            m_arrAmplitudeCalibrationDataDB[nMHZ] = (float)Convert.ToDouble(arrStrings[1]);
+                            //From october 2017 we always save data with "en-US" settings
+                            m_arrAmplitudeCalibrationDataDB[nMHZ] = (float)Double.Parse(arrStrings[1], CultureInfo.InvariantCulture);
                             if (arrStrings.Length >= 3)
                             {
                                 //this is a file that includes compression data
-                                m_arrCompressionDataDBM[nMHZ] = (float)Convert.ToDouble(arrStrings[2]);
+                                m_arrCompressionDataDBM[nMHZ] = (float)Double.Parse(arrStrings[2], CultureInfo.InvariantCulture);
                                 m_bHasCompressionData = true;
                             }
                         }

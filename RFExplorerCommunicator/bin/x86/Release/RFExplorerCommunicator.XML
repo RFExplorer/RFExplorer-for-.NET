@@ -475,6 +475,11 @@
             Internal clock used for sampling, required to calculate sample rate
             </summary>
         </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.ArrPresset">
+            <summary>
+            Array of bytes with one Preset Received from unit
+            </summary>
+        </member>
         <member name="T:RFExplorerCommunicator.RFECommunicator.RFExplorerSignalType">
             <summary>
             Display mode
@@ -495,6 +500,11 @@
             All possible RF Explorer model values
             </summary>
         </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.IsAnalyzerPlus">
+            <summary>
+            Return true if the device mainboard is a PLUS model, regardless the expansion model connected (if any)
+            </summary>
+        </member>
         <member name="T:RFExplorerCommunicator.RFECommunicator.eDSP">
             <summary>
             All possible DSP values
@@ -510,9 +520,30 @@
             Values used to compensate input stage data sent by device, which is defined at 8bits limit
             </summary>
         </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.InputStageAttenuationDB">
+            <summary>
+            Get Attenuation in dB according to input stage 
+            </summary>
+        </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.InputStage">
             <summary>
             Get or set InputStage in available models (do not use from incompatible models)
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.AutoClose">
+            <summary>
+            Set this property to true to automatically close the COM port when the device present a connection failure
+            set to false otherwise
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.MinAmplitudeNormalizedDBM">
+            <summary>
+            Get the minimum threshold for amplitude according to input stage
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.MaxAmplitudeNormalizedDBM">
+            <summary>
+            Get the maximum threshold for amplitude according to input stage
             </summary>
         </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.Calculator">
@@ -534,14 +565,14 @@
             <param name="sText">One of "433M", "868M", "915M", "WSUB1G", "2.4G", "WSUB3G", "6G"</param>
             <returns>Return valid model enumerator or will set to MODEL_NONE if not found</returns>
         </member>
-        <member name="M:RFExplorerCommunicator.RFECommunicator.IsAnalyzerEmbeddedCal">
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsEmbeddedCal">
             <summary>
             As a function of expansion or mainboard being currently selected, returns true if there is internal
             calibration data available, or false if not.
             IMPORTANT: the calibration data is not returned immediately after connection and that may make think
             the calibration is not available. 
             </summary>
-            <returns></returns>
+            <returns>true if calibration is available, otherwise false</returns>
         </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.ExpansionSerialNumber">
             <summary>
@@ -636,7 +667,7 @@
         </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.AmplitudeBottomNormalizedDBM">
             <summary>
-            AmplitudeBottom property includes the offset dBm, the normalized one does not
+            AmplitudeBottom property in dBm includes the offset dB and input stage attenuation in dB,  the normalized one does not
             </summary>
         </member>
         <member name="F:RFExplorerCommunicator.RFECommunicator.m_bAutoConfigure">
@@ -662,6 +693,11 @@
         <member name="P:RFExplorerCommunicator.RFECommunicator.FrequencyOffsetMHZ">
             <summary>
             Manual offset of the frequency reading to compensate external adjustments. Only available in RF Explorer client
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.FreqOffsetInAnalyzer">
+            <summary>
+            Set True if frequency offset is applied to analyzer and False to generator
             </summary>
         </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.PortConnected">
@@ -773,12 +809,22 @@
             Get/Set Signal Generator CW frequency in MHZ.
             </summary>
         </member>
-        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStepFrequencyMHZ">
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStopFrequencyMHZ">
             <summary>
-            Get/Set Signal Generator sweep step frequency in MHZ.
+            Get/Set Signal Generator sweep stop frequency in MHZ.
             </summary>
         </member>
-        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStopFrequencyMHZ">
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStartFrequencyNormalizedMHZ">
+            <summary>
+            Get/Set Signal Generator sweep start frequency in MHZ including frequency offset.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenCWFrequencyNormalizedMHZ">
+            <summary>
+            Get/Set Signal Generator CW frequency in MHZ.
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStopFrequencyNormalizedMHZ">
             <summary>
             Get/Set Signal Generator sweep stop frequency in MHZ.
             </summary>
@@ -828,6 +874,26 @@
         <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenStartPowerLevel">
             <summary>
             Get/Set amplitude sweep start value for Signal Generator Power Level (0-3)
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenExpansionPowerDBM">
+            <summary>
+            Get/Set amplitude power level status for generator expansion
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenExpansionPowerStepDBM">
+            <summary>
+            Get/Set amplitude sweep step for Signal Generator expansion
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenExpansionPowerStartDBM">
+            <summary>
+            Get/Set amplitude sweep start value for Signal Generator expansion
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFECommunicator.RFGenExpansionPowerStopDBM">
+            <summary>
+            Get/Set amplitude sweep stop value for Signal Generator expansion
             </summary>
         </member>
         <member name="P:RFExplorerCommunicator.RFECommunicator.DebugAllReceivedBytes">
@@ -913,6 +979,7 @@
             <summary>
             Property true if the WSUB3G connected is actually a MWSUB3G. This enables us to work with MWSUB3G same as WSUB3G
             except in specific places where MWSUB3G code is required. Use this function anytime to know if a WSUB3G is actually a MWSUB3G
+            Note it also returns true for AudioPro as it includes a 3G in mainboard with same design as MWSUB3G
             </summary>
         </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.IsGenerator(System.Boolean)">
@@ -952,25 +1019,20 @@
             and parse it here for machine usability.
             </summary>
         </member>
-        <member name="M:RFExplorerCommunicator.RFECommunicator.ResetInternalBuffers">
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_TrackingDataPoint(System.UInt16)">
             <summary>
-            Use this function to internally re-initialize the MaxHold buffers used for cache data inside the RF Explorer device
+            Data point from 0-9999 to set the tracking configuration
             </summary>
-        </member>
-        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_TrackingStep(System.UInt16)">
-            <summary>
-            Step from 0-9999 to set the tracking configuration
-            </summary>
-            <param name="nStep">step to select analyzer or tracking generator to work on momentarily</param>
+            <param name="nDataPoint">Data point to select analyzer or tracking generator to work on momentarily</param>
         </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_TrackingConfig(System.Double,System.Double)">
             <summary>
-            Request RF Explorer to enter tracking mode
+            Request RF Explorer Spectrum Analyzer to enter tracking mode
             </summary>
         </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_RequestConfigData">
             <summary>
-            Request RF Explorer SA device to send configuration data and start sending feed back
+            Request RF Explorer device to send configuration data and start sending feed back
             </summary>
         </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_EnableMainboard">
@@ -1008,9 +1070,15 @@
             Enable device LCD screen dump
             </summary>
         </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_SweepDataPointsEx(System.Int32)">
+            <summary>
+            Define RF Explorer SA sweep data points range 112-65536
+            </summary>
+            <param name="nDataPoints">a value in the range of 112-65536, note a value multiple of 2</param>
+        </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_SweepDataPoints(System.Int32)">
             <summary>
-            Define RF Explorer SA sweep data points
+            Define RF Explorer SA sweep data points range 112-4096
             </summary>
             <param name="nDataPoints">a value in the range of 16-4096, note a value multiple of 16 will be used, so any other number will be truncated to nearest 16 multiple</param>
         </member>
@@ -1121,6 +1189,24 @@
             Current tracking step being measured within the sweep
             </summary>
         </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.IsRFGenExpansionCalAvailable">
+            <summary>
+            Returns whether the RF Generator expansion has calibration data or not
+            </summary>
+            <returns>true if calibration is available</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.GetRFE6GENCal">
+            <summary>
+            Returns calibration data for RF Generator mainboard
+            </summary>
+            <returns>RFE6GEN_CalibrationData object array</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFECommunicator.GetRFGenPowerString">
+            <summary>
+            Returns current power setting in string data format H,P or +/-NN.Y depending on mainboard or expansion enabled
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.StartTrackingSequence(System.Boolean)">
             <summary>
             Start and completes asynchronous tracking sequence, this action is performed on the Analyzer and will internally
@@ -1138,14 +1224,14 @@
             <summary>
             Start Sweep Freq generation using current configuration setting values - only valid for Signal Generator models
             </summary>
-            <param name="bTracking">default is false, set it to 'true' to enable SNA tracking mode in generator</param>
+            <param name="bTracking">default is false to work in sweep mode, set it to 'true' to enable SNA tracking mode in generator</param>
         </member>
         <member name="M:RFExplorerCommunicator.RFECommunicator.SendCommand_GeneratorSweepAmplitude">
             <summary>
             Start Sweep Amplitude generation using current configuration setting values - only valid for Signal Generator models
             </summary>
         </member>
-        <member name="M:RFExplorerCommunicator.RFECommunicator.RFGenTrackStepMHZ">
+        <member name="M:RFExplorerCommunicator.RFECommunicator.RFGenStepMHZ">
             <summary>
             Configured tracking step size in MHZ
             </summary>
@@ -1231,6 +1317,11 @@
         <member name="E:RFExplorerCommunicator.RFECommunicator.SnifferRawDataEvent">
             <summary>
             Sniffer RF RAW data decoder packet has been received
+            </summary>
+        </member>
+        <member name="E:RFExplorerCommunicator.RFECommunicator.ReceivedPresetEvent">
+            <summary>
+            A Preset has been received
             </summary>
         </member>
         <member name="E:RFExplorerCommunicator.RFECommunicator.UpdateDataEvent">
@@ -1430,30 +1521,48 @@
             Class support a full sweep of data from RF Explorer, and it is used in the RFESweepDataCollection container
             </summary>
         </member>
-        <member name="F:RFExplorerCommunicator.RFESweepData.m_fStartFrequencyMHZ">
+        <member name="P:RFExplorerCommunicator.RFESweepData.StartFrequencyMHZ">
             <summary>
             Start frequency
             </summary>
         </member>
-        <member name="F:RFExplorerCommunicator.RFESweepData.m_fStepFrequencyMHZ">
+        <member name="P:RFExplorerCommunicator.RFESweepData.EndFrequencyMHZ">
+            <summary>
+            End frequency
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFESweepData.StepFrequencyMHZ">
             <summary>
             Step frequency between each sweep step
             </summary>
         </member>
-        <member name="F:RFExplorerCommunicator.RFESweepData.m_nTotalSteps">
+        <member name="P:RFExplorerCommunicator.RFESweepData.TotalSteps">
             <summary>
             Total number of sweep steps captured
             </summary>
         </member>
-        <member name="F:RFExplorerCommunicator.RFESweepData.m_arrAmplitude">
+        <member name="P:RFExplorerCommunicator.RFESweepData.TotalDataPoints">
             <summary>
-            The actual data container, a consecutive set of dBm amplitude values
+            Total number of sweep data points captured (same as TotalSteps+1)
             </summary>
         </member>
-        <member name="F:RFExplorerCommunicator.RFESweepData.m_Time">
+        <member name="F:RFExplorerCommunicator.RFESweepData.m_arrAmplitude">
+            <summary>
+            The actual data container, a consecutive set of dBm amplitude values, one entry per data point
+            </summary>
+        </member>
+        <member name="P:RFExplorerCommunicator.RFESweepData.CaptureTime">
             <summary>
             The time when this data sweep was created, it should match as much as possible the real data capture
             </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.#ctor(System.Double,System.Double,System.UInt16)">
+            <summary>
+            Create a sweep object with specific frequency settings and default value of amplitude
+            </summary>
+            <param name="StartFreqMHZ">Start frequency in MHZ</param>
+            <param name="StepFreqMHZ">Step frequency in MHZ</param>
+            <param name="nTotalDataPoints">Data points used in the sweep, same as (TotalSteps + 1)</param>
         </member>
         <member name="M:RFExplorerCommunicator.RFESweepData.ProcessReceivedString(System.String,System.Single,System.Boolean,System.Boolean)">
             <summary>
@@ -1471,12 +1580,12 @@
             so it is not adjusted by offset or additionally compensated in any way. If the value was read from a device,
             it may already be an adjusted value including device configured offset.
             </summary>
-            <param name="nStep">Internal frequency step or bucket to read data from</param>
+            <param name="nDataPoint">Internal frequency data point to read data from</param>
             <returns>Value in dBm</returns>
         </member>
         <member name="M:RFExplorerCommunicator.RFESweepData.AddDBOffset(System.Int32)">
             <summary>
-            This function add a specific dB offset to received data from analyzer
+            This function add a specific dB offset to received data from analyzer. This is a total offset which is the sum of offset dB and Input Stage offset.
             </summary>
             <param name="nDBOffset">dB offset</param>
         </member>
@@ -1490,11 +1599,14 @@
             </param>
             <returns>Returns false if no data available</returns>
         </member>
-        <member name="M:RFExplorerCommunicator.RFESweepData.GetBLOBString">
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetBLOBString(System.Boolean)">
             <summary>
             If selected bString in ProcessReceivedString() then raw scan data is available here in string format
             </summary>
-            <returns>BLOB string in if available or empty string if not</returns>
+            <param name="bCreateIfNeeded">
+            Produce a BLOB from standard amplitude float data. This may be required if BLOB was not captured initially but is required later
+            </param>
+            <returns>BLOB string if data available or empty string if not</returns>
         </member>
         <member name="M:RFExplorerCommunicator.RFESweepData.NormalizeAmplitude(RFExplorerCommunicator.RFESweepData)">
             <summary>
@@ -1508,22 +1620,55 @@
             so it is not adjusted by offset or additionally compensated in any way. If the value was read from a device,
             it may already be an adjusted value including device configured offset.
             </summary>
-            <param name="nStep">Internal frequency step or bucket to read data from</param>
+            <param name="nDataPoint">Internal frequency data point to read data from</param>
             <param name="AmplitudeCorrection">Optional parameter, can be null. If different than null, use the amplitude correction table</param>
             <param name="bUseCorrection">If the AmplitudeCorrection is not null, this boolean will tell whether to use it or not</param>
             <returns>Value in dBm</returns>
         </member>
-        <member name="M:RFExplorerCommunicator.RFESweepData.GetMinStep">
+        <member name="M:RFExplorerCommunicator.RFESweepData.SetAmplitudeDBM(System.UInt16,System.Single)">
             <summary>
-            Returns the step of the lowest amplitude value found
+            Set new amplitude in dBm in specific data point
             </summary>
-            <returns></returns>
+            <param name="nDataPoint">where set new amplitude</param>
+            <param name="fDBM">amplitude value in dBm</param>
         </member>
-        <member name="M:RFExplorerCommunicator.RFESweepData.GetPeakStep">
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetFrequencyMHZ(System.UInt16)">
             <summary>
-            Returns the step of the highest amplitude value found
+            Return frequency value according to the data point given
             </summary>
-            <returns></returns>
+            <param name="nDataPoint">Data point which corresponds to specific frequency</param>
+            <returns>frequency in MHz</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetFrequencySpanMHZ">
+            <summary>
+            Return frequency span
+            </summary>
+            <returns>frequency span in MHz</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetMinDataPoint">
+            <summary>
+            Returns the data point of the lowest amplitude value found
+            </summary>
+            <returns>data point of the lowest amplitude value found</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.GetPeakDataPoint">
+            <summary>
+            Returns the data point of the highest amplitude value found
+            </summary>
+            <returns>data point of the highest amplitude value found</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.IsSameConfiguration(RFExplorerCommunicator.RFESweepData)">
+            <summary>
+            Compare the configuration of the two sweep data object
+            </summary>
+            <param name="objOther">sweep data object to compare its configuration</param>
+            <returns>true if it is the same configuration, otherwise false</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepData.Duplicate">
+            <summary>
+            Makes an exact copy of the sweep data object
+            </summary>
+            <returns>duplicate sweep data object</returns>
         </member>
         <member name="M:RFExplorerCommunicator.RFESweepData.GetChannelPowerDBM">
             <summary>
@@ -1551,6 +1696,17 @@
             A collection of RFESweepData objects, each one with independent Sweep configuration and data points
             </summary>
         </member>
+        <member name="T:RFExplorerCommunicator.RFESweepDataCollection.RFEFileDataType">
+            <summary>
+            RF Explorer file formats
+            </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.#ctor(System.UInt32,System.Boolean)">
+            <summary>
+            Allocates up to nCollectionSize elements to start with the container.
+            </summary>
+            <param name="nCollectionSize">Upper limit is RFESweepDataCollection.MAX_ELEMENTS</param>
+        </member>
         <member name="P:RFExplorerCommunicator.RFESweepDataCollection.Count">
             <summary>
             Returns the total of elements with actual data allocated.
@@ -1561,17 +1717,11 @@
             Returns the highest valid index of elements with actual data allocated.
             </summary>
         </member>
-        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.#ctor(System.UInt32,System.Boolean)">
-            <summary>
-            Allocates up to nCollectionSize elements to start with the container.
-            </summary>
-            <param name="nCollectionSize">Upper limit is RFESweepDataCollection.MAX_ELEMENTS</param>
-        </member>
         <member name="M:RFExplorerCommunicator.RFESweepDataCollection.GetData(System.UInt32)">
             <summary>
             Return the data pointed by the zero-starting index
             </summary>
-            <param name="nIndex"></param>
+            <param name="nIndex">Indix to get sweep data object</param>
             <returns>returns null if no data is available with this index</returns>
         </member>
         <member name="M:RFExplorerCommunicator.RFESweepDataCollection.IsFull">
@@ -1580,6 +1730,34 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.CleanPrevHours(System.Int32)">
+            <summary>
+            Removes all data older than nHours
+            </summary>
+            <param name="nHours">number of hours previous to keep, for instance =2 will delete whatever is older than 2hs</param>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.GetFirstSweepByTimeDifference(System.TimeSpan)">
+            <summary>
+            Given a time difference with current time expressed in objTimeSpan, it finds the first item in the collection with time same or newer that fits in objTimeSpan;
+            </summary>
+            <returns>The value of the first sweep within the time span, or 0 if not found or captured sweeps are not enough</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.GetAverage(System.UInt32,System.UInt32)">
+            <summary>
+            Calculates the average value for a group of sweeps
+            </summary>
+            <param name="nStart">First sweep inclusive to include in calculations</param>
+            <param name="nEnd">Last sweep inclusive</param>
+            <returns>null if invalid arguments or no data avialable, the avg sweep object otherwise</returns>
+        </member>
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.GetMax(System.UInt32,System.UInt32)">
+            <summary>
+            Calculates the absolute max value for a group of sweeps
+            </summary>
+            <param name="nStart">First sweep inclusive to include in calculations</param>
+            <param name="nEnd">Last sweep inclusive</param>
+            <returns>null if invalid arguments or no data avialable, the Max sweep object otherwise</returns>
+        </member>
         <member name="M:RFExplorerCommunicator.RFESweepDataCollection.SaveFileCSV(System.String,System.Char,RFExplorerCommunicator.RFEAmplitudeTableData)">
             <summary>
             Will write large, complex, multi-sweep CSV file
@@ -1587,7 +1765,7 @@
             <param name="sFilename"></param>
             <param name="cCSVDelimiter"></param>
         </member>
-        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.SaveFile(System.String,System.String,System.String,RFExplorerCommunicator.RFEAmplitudeTableData,System.Double)">
+        <member name="M:RFExplorerCommunicator.RFESweepDataCollection.SaveFile(System.String,System.String,System.String,RFExplorerCommunicator.RFEAmplitudeTableData)">
             <summary>
             Saves a file in RFE standard format. Note it will not handle exceptions so the calling application can deal with GUI details
             Note: if there are sweeps with different start/stop frequencies, only the first one will be saved to disk
@@ -1616,6 +1794,16 @@
             <summary>
             Update layout of the internal controls and set the container
             </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.ToolGroupCOMPort.Collapse">
+             <summary>
+            Collapse the groupbox programmatically
+             </summary>
+        </member>
+        <member name="M:RFExplorerCommunicator.ToolGroupCOMPort.Uncollapse">
+             <summary>
+            Uncollapse the groupbox programmatically
+             </summary>
         </member>
         <member name="F:RFExplorerCommunicator.ToolGroupCOMPort.components">
             <summary> 

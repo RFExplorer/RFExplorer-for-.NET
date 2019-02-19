@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
+//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -173,7 +173,7 @@ namespace RFExplorerCommunicator
                         {
                             //if only one, ignore the selection from any combo and use what is available
                             csCOMPort = m_objRFE.ValidCP2101Ports[0];
-                            m_sDefaultCOMPort = csCOMPort;
+                             m_sDefaultCOMPort = csCOMPort;
                             m_comboCOMPort.SelectedItem = m_sDefaultCOMPort;
                         }
                     }
@@ -195,10 +195,10 @@ namespace RFExplorerCommunicator
                 }
                 if (!String.IsNullOrEmpty(csCOMPort))
                 {
-                    m_objRFE.ConnectPort(csCOMPort, Convert.ToInt32(m_ComboBaudRate.SelectedItem.ToString()));
+                    m_objRFE.ConnectPort(csCOMPort, Convert.ToInt32(m_ComboBaudRate.SelectedItem.ToString()), RFECommunicator.IsUnixLike(), RFECommunicator.IsUnixLike() && !RFECommunicator.IsMacOS());
 
                     m_objRFE.HoldMode = false;
-                    //m_groupControl_Connection.m_CollGroupBox.Collapsed = true;
+                    //m_groupControl_Connection.m_CollGroupBox.Collapsed = true;                    
                     UpdateButtonStatus();
                     OnPortConnected(new EventArgs());
                 }
@@ -208,13 +208,14 @@ namespace RFExplorerCommunicator
                 Trace.WriteLine(obEx.ToString());
             }
 
-            Cursor.Current = Cursors.Default;
+    Cursor.Current = Cursors.Default;
         }
 
         public void ClosePort()
         {
             Cursor.Current = Cursors.WaitCursor;
             m_objRFE.ClosePort();
+            Uncollapse();
             UpdateComboBox();
             UpdateButtonStatus();
             OnPortClosed(new EventArgs());
@@ -282,7 +283,21 @@ namespace RFExplorerCommunicator
             m_groupControl_Connection.SetUniversalLayout();
         }
 
+        /// <summary>
+        ///Collapse the groupbox programmatically
+        /// </summary>
+        public void Collapse()
+        {
+            m_groupControl_Connection.m_CollGroupBox.Collapsed = true;
+        }
 
+        /// <summary>
+        ///Uncollapse the groupbox programmatically
+        /// </summary>
+        public void Uncollapse()
+        {
+            m_groupControl_Connection.m_CollGroupBox.Collapsed = false;
+        }
         #endregion
 
         #region Private Events and methods

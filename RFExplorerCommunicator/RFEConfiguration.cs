@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
+//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
 //=============================================================================
 
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,7 +33,11 @@ namespace RFExplorerCommunicator
             public double fStepMHZ;
             public double fAmplitudeTopDBM;
             public double fAmplitudeBottomDBM;
-            public UInt16 nFreqSpectrumSteps;
+            private UInt16 nFreqSpectrumDataPoints;   
+            public UInt16 FreqSpectrumSteps
+            {
+                get { return (UInt16)(nFreqSpectrumDataPoints - 1); }
+            }
             public bool bExpansionBoardActive;
             public eMode eMode;
             public eModulation eModulation;
@@ -49,6 +54,7 @@ namespace RFExplorerCommunicator
             public bool bRFEGenHighPowerSwitch;
             public byte nRFEGenPowerLevel;
             public double fRFEGenCWFreqMHZ;
+            public double fRFEGenExpansionPowerDBM;
             public UInt16 nRFEGenSweepWaitMS;
             public bool bRFEGenPowerON;
 
@@ -58,13 +64,17 @@ namespace RFExplorerCommunicator
             public byte nRFEGenStopPowerLevel;
             public UInt16 nRFGenSweepPowerSteps;
 
+            public double fRFEGenExpansionPowerStepDBM;
+            public double fRFEGenExpansionPowerStartDBM;
+            public double fRFEGenExpansionPowerStopDBM;
+
             public RFEConfiguration()
             {
                 fStartMHZ = 0.0;
                 fStepMHZ = 0.0;
                 fAmplitudeTopDBM = 0.0;
                 fAmplitudeBottomDBM = 0.0;
-                nFreqSpectrumSteps = 0;
+                nFreqSpectrumDataPoints = 0;
                 bExpansionBoardActive = false;
                 eMode = eMode.MODE_NONE;
                 fMinFreqMHZ = 0.0;
@@ -81,12 +91,17 @@ namespace RFExplorerCommunicator
                 nRFEGenPowerLevel = 0;
                 fRFEGenCWFreqMHZ = 0.0;
                 bRFEGenPowerON = false;
+                fRFEGenExpansionPowerDBM = -100f;
 
                 bRFEGenStartHighPowerSwitch = false;
                 bRFEGenStopHighPowerSwitch = false;
                 nRFEGenStartPowerLevel = 0;
                 nRFEGenStopPowerLevel = 1;
                 nRFGenSweepPowerSteps = 0;
+
+                fRFEGenExpansionPowerStepDBM = 0.25;
+                fRFEGenExpansionPowerStartDBM = -100;
+                fRFEGenExpansionPowerStopDBM = 10;
 
                 eCalculator = eCalculator.UNKNOWN;
             }
@@ -97,7 +112,7 @@ namespace RFExplorerCommunicator
                 fStepMHZ = objSource.fStepMHZ;
                 fAmplitudeTopDBM = objSource.fAmplitudeTopDBM;
                 fAmplitudeBottomDBM = objSource.fAmplitudeBottomDBM;
-                nFreqSpectrumSteps = objSource.nFreqSpectrumSteps;
+                nFreqSpectrumDataPoints = objSource.nFreqSpectrumDataPoints;
                 bExpansionBoardActive = objSource.bExpansionBoardActive;
                 eMode = objSource.eMode;
                 fMinFreqMHZ = objSource.fMinFreqMHZ;
@@ -121,6 +136,10 @@ namespace RFExplorerCommunicator
                 nRFEGenStartPowerLevel = objSource.nRFEGenStartPowerLevel;
                 nRFEGenStopPowerLevel = objSource.nRFEGenStopPowerLevel;
                 nRFGenSweepPowerSteps = objSource.nRFGenSweepPowerSteps;
+
+                fRFEGenExpansionPowerStepDBM = objSource.fRFEGenExpansionPowerStepDBM;
+                fRFEGenExpansionPowerStartDBM = objSource.fRFEGenExpansionPowerStartDBM;
+                fRFEGenExpansionPowerStopDBM = objSource.fRFEGenExpansionPowerStopDBM;
             }
 
             public bool ProcessReceivedString(string sLine)
@@ -141,11 +160,11 @@ namespace RFExplorerCommunicator
                         int nPos = 32;
                         if (sLine.StartsWith("#C2-f:"))
                         {
-                            nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(nPos, 5));
+                            nFreqSpectrumDataPoints = Convert.ToUInt16(sLine.Substring(nPos, 5));
                             nPos++;
                         }
                         else
-                            nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(nPos, 4));
+                            nFreqSpectrumDataPoints = Convert.ToUInt16(sLine.Substring(nPos, 4));
                         nPos += 4; //we use this variable to keep state for long step number
 
                         bExpansionBoardActive = (sLine[nPos + 1] == '1');
@@ -167,7 +186,7 @@ namespace RFExplorerCommunicator
                             eCalculator = (eCalculator)Convert.ToUInt16(sLine.Substring(nPos + 42, 3));
                         }
                     }
-                    else if ((sLine.Length >= 29) && (sLine.Substring(0, 4) == "#C3-"))
+                    else if ((sLine.Length >= 29) && (sLine.StartsWith("#C3-")))
                     {
                         //Signal generator CW, SweepFreq and SweepAmp modes
                         switch (sLine[4])
@@ -176,7 +195,7 @@ namespace RFExplorerCommunicator
                                 {
                                     fStartMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
                                     fRFEGenCWFreqMHZ = Convert.ToInt32(sLine.Substring(14, 7)) / 1000.0;  //Note it comes in KHZ
-                                    nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(22, 4));
+                                    nFreqSpectrumDataPoints = (UInt16)(Convert.ToUInt16(sLine.Substring(22, 4)) + 1); //From generator it receives steps so we add 1
                                     fStepMHZ = Convert.ToInt32(sLine.Substring(27, 7)) / 1000.0;  //Note it comes in KHZ
                                     bRFEGenHighPowerSwitch = (sLine[35] == '1');
                                     nRFEGenPowerLevel = Convert.ToByte(sLine[37] - 0x30);
@@ -208,7 +227,7 @@ namespace RFExplorerCommunicator
                                 {
                                     //Sweep Frequency mode
                                     fStartMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
-                                    nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(14, 4));
+                                    nFreqSpectrumDataPoints = (UInt16)(Convert.ToUInt16(sLine.Substring(14, 4)) + 1); //From generator it receives steps so we add 1
                                     fStepMHZ = Convert.ToInt32(sLine.Substring(19, 7)) / 1000.0;  //Note it comes in KHZ
                                     bRFEGenHighPowerSwitch = (sLine[27] == '1');
                                     nRFEGenPowerLevel = Convert.ToByte(sLine[29] - 0x30);
@@ -221,11 +240,71 @@ namespace RFExplorerCommunicator
                                 {
                                     //Normal CW mode
                                     fRFEGenCWFreqMHZ = Convert.ToInt32(sLine.Substring(14, 7)) / 1000.0;  //Note it comes in KHZ
-                                    nFreqSpectrumSteps = Convert.ToUInt16(sLine.Substring(22, 4));
+                                    nFreqSpectrumDataPoints = (UInt16)(Convert.ToUInt16(sLine.Substring(22, 4)) + 1); //From generator it receives steps so we add 1
                                     fStepMHZ = Convert.ToInt32(sLine.Substring(27, 7)) / 1000.0;  //Note it comes in KHZ
                                     bRFEGenHighPowerSwitch = (sLine[35] == '1');
                                     nRFEGenPowerLevel = Convert.ToByte(sLine[37] - 0x30);
                                     bRFEGenPowerON = (sLine[39] == '1');
+                                    eMode = RFECommunicator.eMode.MODE_GEN_CW;
+                                    break;
+                                }
+                            default:
+                                eMode = eMode.MODE_NONE;
+                                bOk = false;
+                                break;
+                        }
+                    }
+                    else if ((sLine.Length >= 20) && (sLine.StartsWith("#C5-")))
+                    {
+                        //Signal generator CW, SweepFreq and SweepAmp modes
+                        switch (sLine[4])
+                        {
+                            case '*':
+                                {
+                                    fStartMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
+                                    fRFEGenCWFreqMHZ = Convert.ToInt32(sLine.Substring(14, 7)) / 1000.0;  //Note it comes in KHZ
+                                    nFreqSpectrumDataPoints = (UInt16)(Convert.ToUInt16(sLine.Substring(22, 4)) + 1); //From generator it receives steps so we add 1
+                                    fStepMHZ = Convert.ToInt32(sLine.Substring(27, 7)) / 1000.0;  //Note it comes in KHZ
+                                    fRFEGenExpansionPowerDBM = Double.Parse(sLine.Substring(35, 5), CultureInfo.InvariantCulture);
+                                    fRFEGenExpansionPowerStepDBM = Double.Parse(sLine.Substring(41, 5), CultureInfo.InvariantCulture);
+                                    fRFEGenExpansionPowerStartDBM = Double.Parse(sLine.Substring(47, 5), CultureInfo.InvariantCulture);
+                                    fRFEGenExpansionPowerStopDBM = Double.Parse(sLine.Substring(53, 5), CultureInfo.InvariantCulture);
+                                    bRFEGenPowerON = (sLine[59] == '1');
+                                    nRFEGenSweepWaitMS = Convert.ToUInt16(sLine.Substring(61, 5));
+                                    eMode = eMode.MODE_NONE;
+                                    break;
+                                }
+                            case 'A':
+                                {
+                                    //Sweep Amplitude mode
+
+                                    fStartMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
+                                    fRFEGenExpansionPowerStepDBM = Double.Parse(sLine.Substring(14, 5), CultureInfo.InvariantCulture);
+                                    fRFEGenExpansionPowerStartDBM = Double.Parse(sLine.Substring(20, 5), CultureInfo.InvariantCulture);
+                                    fRFEGenExpansionPowerStopDBM = Double.Parse(sLine.Substring(26, 5), CultureInfo.InvariantCulture);
+                                    bRFEGenPowerON = (sLine[32] == '1');
+                                    nRFEGenSweepWaitMS = Convert.ToUInt16(sLine.Substring(34, 5));
+                                    eMode = RFECommunicator.eMode.MODE_GEN_SWEEP_AMP;
+                                    break;
+                                }
+                            case 'F':
+                                {
+                                    //Sweep Frequency mode
+                                    fStartMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
+                                    nFreqSpectrumDataPoints = (UInt16)(Convert.ToUInt16(sLine.Substring(14, 4)) + 1); //From generator it receives steps so we add 1
+                                    fStepMHZ = Convert.ToInt32(sLine.Substring(19, 7)) / 1000.0;  //Note it comes in KHZ
+                                    fRFEGenExpansionPowerDBM = Double.Parse(sLine.Substring(27, 5), CultureInfo.InvariantCulture);
+                                    bRFEGenPowerON = (sLine[33] == '1');
+                                    nRFEGenSweepWaitMS = Convert.ToUInt16(sLine.Substring(35, 5));
+                                    eMode = RFECommunicator.eMode.MODE_GEN_SWEEP_FREQ;
+                                    break;
+                                }
+                            case 'G':
+                                {
+                                    //Normal CW mode
+                                    fRFEGenCWFreqMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0;  //Note it comes in KHZ
+                                    fRFEGenExpansionPowerDBM = Double.Parse(sLine.Substring(14, 5), CultureInfo.InvariantCulture);
+                                    bRFEGenPowerON = (sLine[20] == '1');
                                     eMode = RFECommunicator.eMode.MODE_GEN_CW;
                                     break;
                                 }
@@ -245,12 +324,12 @@ namespace RFExplorerCommunicator
                         nBaudrate = (UInt32)Math.Round(Convert.ToDouble(RFECommunicator.FCY_CLOCK) / nDelay);
                         eModulation = (eModulation)Convert.ToUInt16(sLine.Substring(26, 1));
                         fRBWKHZ = Convert.ToInt32(sLine.Substring(28, 5));
-                        fThresholdDBM = (float)(-0.5 * Convert.ToDouble(sLine.Substring(34, 3)));
+                        fThresholdDBM = (float)(-0.5 * Double.Parse(sLine.Substring(34, 3), CultureInfo.InvariantCulture));
                     }
                     else
                         bOk = false;
                 }
-                catch (Exception)
+                catch
                 {
                     bOk = false;
                 }

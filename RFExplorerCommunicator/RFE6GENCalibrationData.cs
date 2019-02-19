@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
+//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -426,7 +426,11 @@ namespace RFExplorerCommunicator
 
             for (int nInd = 0; nInd < nSize; nInd++)
             {
-                m_arrSignalGeneratorEmbeddedCalibrationActual30DBM[nInd] = -30.0 + Convert.ToInt16(sLine[nInd + 3]) / 10.0;
+                int nVal = Convert.ToInt16(sLine[nInd + 3]);
+                if (nVal > 127)
+                    nVal = -(256 - nVal); //get the right sign
+
+                m_arrSignalGeneratorEmbeddedCalibrationActual30DBM[nInd] = -30.0 + (nVal / 10.0);
                 if (!String.IsNullOrEmpty(sLine))
                 {
                     if ((nInd % 16) == 0)

@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-13 Ariel Rocholl, www.rf-explorer.com
+//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -18,12 +18,7 @@
 //=============================================================================
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.Threading;
 using RFExplorerCommunicator;
@@ -67,20 +62,24 @@ namespace RFExplorerSimpleClient
         #endregion
 
         #region RFExplorer Events
+        bool m_bNewConfigurationReceived = false; //use this state variable to know when asyncrhonous config was received
         private void OnRFE_ReceivedConfigData(object sender, EventArgs e)
         {
+            m_bNewConfigurationReceived = true;
             ReportDebug(m_sRFEReceivedString);
             m_objRFE.SweepData.CleanAll(); //we do not want mixed data sweep values
         }
 
         private void OnRFE_UpdateData(object sender, EventArgs e)
         {
-            labelSweeps.Text = "Sweeps: " + m_objRFE.SweepData.Count.ToString();
-
             RFESweepData objData = m_objRFE.SweepData.GetData(m_objRFE.SweepData.Count - 1);
+
+            labelSweeps.Text = "Sweeps: " + m_objRFE.SweepData.Count.ToString();
             if (objData != null)
             {
-                UInt16 nPeak = objData.GetPeakStep();
+                labelSweeps.Text += " Points: " + objData.TotalDataPoints;
+
+                UInt16 nPeak = objData.GetPeakDataPoint();
 
                 labelFrequency.Text = objData.GetFrequencyMHZ(nPeak).ToString("f3") + " MHZ";
                 labelAmplitude.Text = objData.GetAmplitudeDBM(nPeak).ToString("f2") + " dBm";
@@ -117,7 +116,7 @@ namespace RFExplorerSimpleClient
             }
             else
             {
-                this.Size = new Size(this.Size.Width, 187);
+                this.Size = new Size(this.Size.Width, 206);
                 m_edRFEReportLog.Visible = false;
             }
         }
@@ -189,6 +188,89 @@ namespace RFExplorerSimpleClient
             {
                 m_objRFE.ProcessReceivedString(true, out m_sRFEReceivedString);
             }
+        }
+        #endregion
+
+        #region example commands
+
+        private void OnCommandA_Click(object sender, EventArgs e)
+        {
+            //Example command LCD ON, this command does not require wait for answer
+            if (m_objRFE!=null && m_objRFE.PortConnected)
+            {
+                m_objRFE.SendCommand_ScreenON();
+                Thread.Sleep(100); //Wait 100ms to wait for command to settle
+            }
+        }
+
+        private void OnCommandB_Click(object sender, EventArgs e)
+        {
+            //Example command LCD OFF, this command does not require wait for answer
+            if (m_objRFE != null && m_objRFE.PortConnected)
+            {
+                m_objRFE.SendCommand_ScreenOFF();
+                Thread.Sleep(100); //Wait 100ms to wait for command to settle
+            }
+        }
+
+        private void OnCommandC_Click(object sender, EventArgs e)
+        {
+            Cursor.Current = Cursors.WaitCursor;
+
+            //Example command new configuration request, requires wait before allowing user to change config again
+            if (m_objRFE != null && m_objRFE.PortConnected)
+            {
+                //ask device to change configuration
+                m_bNewConfigurationReceived = false;
+                m_objRFE.UpdateDeviceConfig(584.800, 587.575, 0f, -120f);
+                //wait for device to reconfigure
+                while (!m_bNewConfigurationReceived)
+                {
+                    Thread.Sleep(100); //Wait 100ms
+                    Application.DoEvents(); //process events to get new configuration
+                }
+                //ask device to change resolution
+                m_bNewConfigurationReceived = false;
+                m_objRFE.SendCommand_SweepDataPointsEx(5570);
+                //wait for device to reconfigure
+                while (!m_bNewConfigurationReceived)
+                {
+                    Thread.Sleep(100); //Wait 100ms
+                    Application.DoEvents(); //process events to get new configuration
+                }
+            }
+
+            Cursor.Current = Cursors.Default;
+        }
+
+        private void OnCommandD_Click(object sender, EventArgs e)
+        {
+            Cursor.Current = Cursors.WaitCursor;
+
+            //Example command new configuration request, requires wait before allowing user to change config again
+            if (m_objRFE != null && m_objRFE.PortConnected)
+            {
+                //ask device to change configuration
+                m_bNewConfigurationReceived = false;
+                m_objRFE.UpdateDeviceConfig(580.000, 600.000, 0f, -120f);
+                //wait for device to reconfigure
+                while (!m_bNewConfigurationReceived)
+                {
+                    Thread.Sleep(100); //Wait 100ms
+                    Application.DoEvents(); //process events to get new configuration
+                }
+                //ask device to change resolution
+                m_bNewConfigurationReceived = false;
+                m_objRFE.SendCommand_SweepDataPointsEx(1200);
+                //wait for device to reconfigure
+                while (!m_bNewConfigurationReceived)
+                {
+                    Thread.Sleep(100); //Wait 100ms
+                    Application.DoEvents(); //process events to get new configuration
+                }
+            }
+
+            Cursor.Current = Cursors.Default;
         }
         #endregion
     }

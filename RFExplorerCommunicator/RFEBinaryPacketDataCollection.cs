@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
+//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.Data;
 using System.Linq;
 using System.Xml;
+using System.Globalization;
 
 namespace RFExplorerCommunicator
 {
@@ -861,7 +862,7 @@ namespace RFExplorerCommunicator
         /// Decode HT12 protocol. Data bit: 0 = bit0, 1 = bit1, Sync: 2 = OK and 3 = FAIL 
         /// </summary>
         /// <returns>Array with decoded sequence. 0 = bit 0, 1 = bit 1, 2 = OK and 3 = FAIL</returns>
-        public byte[] DecodeHT12() //TODO Julian: new ht12 function
+        public byte[] DecodeHT12() //TODO T0028: new ht12 function
         {
             List<byte> listDecodedBits = new List<byte>();
             ePulseWidth[] arrTempDecoderBit = null;
@@ -874,7 +875,7 @@ namespace RFExplorerCommunicator
 
             if (nArrayLength > 0)
             {
-                if (arrTempDecoderBit[0].Equals(ePulseWidth.NARROW_1) && nArrayLength == 25) //TODO Julian: check this number 25
+                if (arrTempDecoderBit[0].Equals(ePulseWidth.NARROW_1) && nArrayLength == 25) //TODO T0028: check this number 25
                     listDecodedBits.Add((byte)eDecodedBit.OK);
                 else
                     listDecodedBits.Add((byte)eDecodedBit.FAIL);
@@ -993,10 +994,11 @@ namespace RFExplorerCommunicator
                     {
                         myFile.WriteLine("Date: " + CaptureTime.ToShortDateString());
                         myFile.WriteLine("Time: " + CaptureTime.ToString("HH:mm:ss"));
-                        myFile.WriteLine("Freq(MHZ):" + FrequencyMHZ.ToString("f3"));
+                        //From october 2017 we always save data with "en-US" settings
+                        myFile.WriteLine("Freq(MHZ):" + FrequencyMHZ.ToString("f3", CultureInfo.InvariantCulture));
                         myFile.WriteLine("Sample rate: " + m_nSampleRate.ToString());
-                        myFile.WriteLine("RBW(KHZ): " + m_fRBWKhz.ToString("f3"));
-                        myFile.WriteLine("Threshold(dBm): " + m_fThresholdDBM.ToString("f1"));
+                        myFile.WriteLine("RBW(KHZ): " + m_fRBWKhz.ToString("f3", CultureInfo.InvariantCulture));
+                        myFile.WriteLine("Threshold(dBm): " + m_fThresholdDBM.ToString("f1", CultureInfo.InvariantCulture));
                         myFile.WriteLine("Data values: Sample_Index, Sample_Value");
                     }
 
@@ -1189,9 +1191,9 @@ namespace RFExplorerCommunicator
         DataSet m_XMLSnifferData = new DataSet("RF_Explorer_Sniffer_Data_Structure"); //Data collection
 
         int m_nUpperBound = -1;  //Max value for index with available data
-                                 /// <summary>
-                                 /// Returns the total of elements with actual data allocated.
-                                 /// </summary>
+        /// <summary>
+        /// Returns the total of elements with actual data allocated.
+        /// </summary>
         public UInt16 Count
         {
             get { return ((UInt16)(m_nUpperBound + 1)); }
@@ -1282,10 +1284,10 @@ namespace RFExplorerCommunicator
                     {
                         if (objData == null)
                             break;
-
+                        //From october 2017 we always save data with "en-US" settings
                         myFile.WriteLine(objData.CaptureTime.ToShortDateString() + cCSVDelimiter + objData.CaptureTime.ToString("HH:mm:ss") + cCSVDelimiter +
-                            objData.FrequencyMHZ.ToString("f3") + cCSVDelimiter + objData.SampleRate.ToString() + cCSVDelimiter +
-                            objData.RBWKhz.ToString("f3") + cCSVDelimiter + objData.ThresholdDBM.ToString("f1"));
+                            objData.FrequencyMHZ.ToString("f3", CultureInfo.InvariantCulture) + cCSVDelimiter + objData.SampleRate.ToString() + cCSVDelimiter +
+                            objData.RBWKhz.ToString("f3", CultureInfo.InvariantCulture) + cCSVDelimiter + objData.ThresholdDBM.ToString("f1", CultureInfo.InvariantCulture));
 
                         string sLine = "";
                         for (UInt16 nIndex = 0; nIndex < objData.Count; nIndex++)

@@ -1,4 +1,23 @@
-﻿using System.Reflection;
+﻿//============================================================================
+//RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
+//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
+//
+//This application is free software; you can redistribute it and/or
+//modify it under the terms of the GNU Lesser General Public
+//License as published by the Free Software Foundation; either
+//version 3.0 of the License, or (at your option) any later version.
+//
+//This software is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//General Public License for more details.
+//
+//You should have received a copy of the GNU General Public
+//License along with this library; if not, write to the Free Software
+//Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//=============================================================================
+
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -8,10 +27,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("RFExplorerSimpleClient")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyCompany("RF Explorer Technologies SL")]
 [assembly: AssemblyProduct("RFExplorerSimpleClient")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2012")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("Copyright (C) RF Explorer Technologies SL")]
+[assembly: AssemblyTrademark("RF Explorer(TM)")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -22,15 +41,5 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("9a7a7b6c-503a-45d9-92e7-0ee1240a3efc")]
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.1611.1")]
-[assembly: AssemblyFileVersion("1.0.1611.1")]
+[assembly: AssemblyVersion("1.23.1902.1")]
+[assembly: AssemblyFileVersion("1.23.1902.1")]

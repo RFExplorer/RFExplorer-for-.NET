@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
+//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -18,8 +18,5 @@
 //=============================================================================
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.15.1705.2")]
-[assembly: AssemblyFileVersion("1.15.1705.2")]
-
-
-
+[assembly: AssemblyVersion("2.00.1902.1")]
+[assembly: AssemblyFileVersion("2.00.1902.1")]
