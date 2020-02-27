@@ -16,44 +16,38 @@ Platform distribution files
     RFExplorer_ScanRange.exe    - Native Windows OS tool, required .NET 4.0 installed
 
 * Linux:
-    * RaspberryPi:
-        * Light:
-            rfe_scan_range      - Suggested for official RF Explorer IoT Raspberry Pi distribution images with compatible Mono already installed
-        * Complete:
-            rfe_scan_range      - Complete bundle with all dependencies linked, may work even if Mono is not installed
-    * Others:                   - Required Mono installed
+    * RFExplorer_ScanRange.exe:    - Required Mono installed
 * MacOS:
-    * Light:
-        rfe_scan_range          - Suggested for users with Mono 4.8.0 already installed in the system
-    * Complete:
-        rfe_scan_range          - Complete bundle with all dependencies linked, may work even if Mono is not installed
-
+    * RFExplorer_ScanRange.exe:    - Required Mono installed
 
 Parameters
 ----------
 
 Format:
-    RFExplorer_ScanRange [/IOT | /p:PORT] [/s: [low|high]] [/csv:path] [/rfe:path] [/time:secs] StartRangeMHZ  StopRangeMHZ
+    RFExplorer_ScanRange </IOT | /p:PORT> [/s:[low|high]] [/csv:path] [/rfe:path] [/time:secs] [/res: [low|normal|high]][/input:[dir|att|lna]] StartRangeMHZ  StopRangeMHZ
 
 Required parameters:
-    StartRangeMHZ: is a number in range valid for your Analyzer model to start scan sweep
-    StopRangeMHZ: is a number in range valid for your Analyzer model to stop scan sweep
-    
-    Note: one of /IOT or /p parameters are required
-    
+    </IOT | /p:PORT>: Connect to a Raspberry Pi assembled RF Explorer IoT board or Connect to a USB port such as COM3 or /dev/ttyUSB0
+                      Using AUTO assumes only RF Explorer connected to USB port
+                      Note: one of /IOT or /p parameters are required
+    StartRangeMHZ: Is a number in range valid for your Analyzer model to start scan sweep
+    StopRangeMHZ: Is a number in range valid for your Analyzer model to stop scan sweep
+                  Note: Current limit for full range scanning is up to 1000MHz
+                  Some models and configurations may have limited sweep points
+
 Optional parameters:
-    /IOT: Connect to a Raspberry Pi assembled RF Explorer IoT board
-    /p: Connect to a USB port such as COM3 or /dev/ttyUSB0
-        Using AUTO assumes only RF Explorer connected to USB port
     /s: [low|high] Baudrate speed being high=500Kbps default, and low=2400bps
     /csv: Output CSV filename (no extension) to save consecutive scans
     /rfe: Output .RFE binary filename (no extension) to save consecutive scans
-    /time: total seconds to scan before close automatically. If not specified will scan 1 hour and close automatically.
-       If set to 0 will do one single scan and close automatically.
-       If set to -1 will run forever.
+    /time: Total seconds to scan before close automatically. If not specified
+           will scan 1 hour and close automatically.
+           If set to 0 will do one single scan and close automatically.
+           If set to -1 will run forever.
+           NOTE: Only one of / count or / time can be used as argument.
+    /count: Number files to save before close automatically.
+            NOTE: Only one of /count or /time can be used as argument.
     /res: [high|normal|low] For IOT only: resolution used for scan data eq to 4096, 1024 or 112 points
-       Note: Current limit for full range scanning is up to 1000MHz
-             Some models and configurations may have limited sweep points
+	/input: [dir|att|lna] Select device input stage as dir=Direct Input, att=Attenuator 30dB or lna=Amplifier 25dB
 
 Keyboard control:
     <Q> Finish application
@@ -94,11 +88,11 @@ For using Raspberry Pi as a USB host for a handheld RF Explorer (as opposed to I
 
 All examples above should work for the IoT boards, but requires /IOT switch as opposed to /p. Example below scanning 200-300 MHz with up to 60 seconds scan.
     
-    sudo rfe_scan_range /IOT 200 300 /time:60
+    sudo mono RFExplorer_ScanRange.exe /IOT 200 300 /time:60
     
 The IoT boards may use extended sweep points (not available yet in Handheld firmware). This example below will scan 4096 sweep points - this is slower but increase resolution scan for narrow channels and lower noise.
 
-    sudo rfe_scan_range /IOT 200 300 /res:high /time:60
+    sudo mono RFExplorer_ScanRange.exe /IOT 200 300 /res:high /time:60
     
 Examples MacOS X
 ----------------
@@ -107,10 +101,8 @@ Equivalent to above example, except you should use "sudo rfe_scan_range" in repl
 
 Example storing /csv files into /tmp/csv folder with name samples_xxxx.csv automatically created by the tool
 
-    sudo rfe_scan_range /p:AUTO 200 300 /csv:/tmp/csv
+    sudo mono RFExplorer_ScanRange.exe /p:AUTO 200 300 /csv:/tmp/csv
     
-Notes: There are two versions of the tool in folders Light and Complete. If you have Mono installed in your system, we suggest using Light version, but the Complete should work too. If you do not have Mono installed, try the Complete version only - if it fails you need to install Mono in your system.
-
 Mono versions suggested:
 
     * Raspberry Pi: already installed in official IoT images - check www.rf-explorer.com/downloads

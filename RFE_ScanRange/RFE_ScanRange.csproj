@@ -12,28 +12,9 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -41,7 +22,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>false</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -51,18 +32,30 @@
     <NoWarn>
     </NoWarn>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'ReleaseUnixLike|x86' ">
+    <OutputPath>bin\ReleaseUnixLike\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Raspberry.IO">
-      <HintPath>..\..\..\windows\Libraries\raspberry-sharp-io\Raspberry.IO.GeneralPurpose\bin\Release\Raspberry.IO.dll</HintPath>
+    <Reference Include="Raspberry.IO, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Release\Raspberry.IO.dll</HintPath>
     </Reference>
-    <Reference Include="Raspberry.IO.GeneralPurpose">
-      <HintPath>..\..\..\windows\Libraries\raspberry-sharp-io\Raspberry.IO.GeneralPurpose\bin\Release\Raspberry.IO.GeneralPurpose.dll</HintPath>
+    <Reference Include="Raspberry.IO.GeneralPurpose, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Release\Raspberry.IO.GeneralPurpose.dll</HintPath>
     </Reference>
-    <Reference Include="Raspberry.IO.Interop">
-      <HintPath>..\..\..\windows\Libraries\raspberry-sharp-io\Raspberry.IO.GeneralPurpose\bin\Release\Raspberry.IO.Interop.dll</HintPath>
+    <Reference Include="Raspberry.IO.Interop, Version=2.1.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Release\Raspberry.IO.Interop.dll</HintPath>
     </Reference>
-    <Reference Include="Raspberry.System">
-      <HintPath>..\..\..\windows\Libraries\raspberry-sharp-system\Raspberry.System\bin\Release\Raspberry.System.dll</HintPath>
+    <Reference Include="Raspberry.System, Version=1.2.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Release\Raspberry.System.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -76,8 +69,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\RFE_VersionAssemblyInfo.cs">
-      <Link>Properties\RFE_VersionAssemblyInfo.cs</Link>
+      <Link>..\RFE_VersionAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ReportTraceListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RFExplorerCommunicator\RFExplorerCommunicator.csproj">

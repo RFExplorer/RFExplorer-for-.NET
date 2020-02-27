@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@ namespace RFExplorerCommunicator
             public double fStepMHZ;
             public double fAmplitudeTopDBM;
             public double fAmplitudeBottomDBM;
-            private UInt16 nFreqSpectrumDataPoints;   
+            private UInt16 nFreqSpectrumDataPoints;
             public UInt16 FreqSpectrumSteps
             {
                 get { return (UInt16)(nFreqSpectrumDataPoints - 1); }
@@ -87,7 +87,7 @@ namespace RFExplorerCommunicator
                 fThresholdDBM = 0.0f;
 
                 nRFEGenSweepWaitMS = 0;
-                bRFEGenHighPowerSwitch=false;
+                bRFEGenHighPowerSwitch = false;
                 nRFEGenPowerLevel = 0;
                 fRFEGenCWFreqMHZ = 0.0;
                 bRFEGenPowerON = false;
@@ -150,7 +150,7 @@ namespace RFExplorerCommunicator
                 {
                     sLineString = sLine;
 
-                    if ( (sLine.Length >= 60) && ((sLine.StartsWith("#C2-F:")) || (sLine.StartsWith("#C2-f:"))) )
+                    if ((sLine.Length >= 60) && ((sLine.StartsWith("#C2-F:")) || (sLine.StartsWith("#C2-f:"))))
                     {
                         //Spectrum Analyzer mode, can be C2-F for steps < 10000 or C2-f for steps >=10000
                         fStartMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
@@ -278,7 +278,7 @@ namespace RFExplorerCommunicator
                                 {
                                     //Sweep Amplitude mode
 
-                                    fStartMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
+                                    fRFEGenCWFreqMHZ = Convert.ToInt32(sLine.Substring(6, 7)) / 1000.0; //note it comes in KHZ
                                     fRFEGenExpansionPowerStepDBM = Double.Parse(sLine.Substring(14, 5), CultureInfo.InvariantCulture);
                                     fRFEGenExpansionPowerStartDBM = Double.Parse(sLine.Substring(20, 5), CultureInfo.InvariantCulture);
                                     fRFEGenExpansionPowerStopDBM = Double.Parse(sLine.Substring(26, 5), CultureInfo.InvariantCulture);

@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -28,15 +28,15 @@ namespace RFExplorerCommunicator
     public enum eExtFlashDataType
     {
         //Some Reserved values for future data sweep versions and to make easier use ranges for < or >
-        FLASH_DATA_TYPE_SWEEP_v1    =0,                
-        FLASH_DATA_TYPE_SWEEP_START =15,        
-        FLASH_DATA_TYPE_CONFIG      =20,
-        FLASH_DATA_TYPE_BITMAP      =100,
+        FLASH_DATA_TYPE_SWEEP_v1 = 0,
+        FLASH_DATA_TYPE_SWEEP_START = 15,
+        FLASH_DATA_TYPE_CONFIG = 20,
+        FLASH_DATA_TYPE_BITMAP = 100,
         FLASH_DATA_TYPE_API,
-    
-        FLASH_DATA_TYPE_EMPTY       =0xff
-    };   
-    
+
+        FLASH_DATA_TYPE_EMPTY = 0xff
+    };
+
     /// <summary>
     /// This class represents a basic block of memory, up to 4096 bytes length, with an address within the available memory space, 
     /// a total length and a raw memory container
@@ -54,13 +54,13 @@ namespace RFExplorerCommunicator
         {
             get { return m_arrBytes; }
         }
-        
+
         /// <summary>
         /// Memory type available in RFE devices
         /// </summary>
         public enum eMemoryType
         {
-            MEM_FLASH=0,
+            MEM_FLASH = 0,
             MEM_RAM1,
             MEM_RAM2
         }

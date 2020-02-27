@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -313,7 +313,7 @@ namespace RFExplorerCommunicator
         /// <returns>address:xxxxxxx, data:xxxx, "OK"/"FAIL" (sync).Although it will depend of protocol</returns>
         public string GetDecodedWordText(int nWordInd)
         {
-            if (m_arrDecodedWordText != null && nWordInd < m_arrDecodedWordText.Length) 
+            if (m_arrDecodedWordText != null && nWordInd < m_arrDecodedWordText.Length)
                 return m_arrDecodedWordText[nWordInd];
             else
                 return eDecodedBit.FAIL.ToString();
@@ -779,8 +779,8 @@ namespace RFExplorerCommunicator
             //Information of hardcoded signal. Address = XXXX XXXX bits (position[0] to[7]), 
             //Data = XXXX(position[8] to[11]) bits and Sync = OK / FAIL bit(positon[12]).
             string sTextBit = "";
-            int nNextX = 0, nXData = 0; 
-            UInt16 nLength = 0, nLengthAddress = 0, nLengthData = 0; 
+            int nNextX = 0, nXData = 0;
+            UInt16 nLength = 0, nLengthAddress = 0, nLengthData = 0;
             string sTextAddressBit = "Address: ", sTextDataBit = "Data: ";
 
             for (int nInd = 0; nInd < GetDecodedBitCount(); nInd++)
@@ -797,7 +797,7 @@ namespace RFExplorerCommunicator
                     sTextBit = nBitValue.ToString();
                 if (nInd < 8)
                 {
-                    nLengthAddress +=  nLength;
+                    nLengthAddress += nLength;
                     if (nBitValue == (byte)eDecodedBit.FAIL)
                     {
                         sTextAddressBit = eDecodedBit.FAIL.ToString();
@@ -1120,7 +1120,7 @@ namespace RFExplorerCommunicator
             }
             catch (Exception obEx)
             {
-                m_ParentCollection.ReportLog("Error: not found CSV output file"+obEx.Message.ToString());
+                m_ParentCollection.ReportLog("Error: not found CSV output file" + obEx.Message.ToString());
                 bOk = false;
             }
             return bOk;
@@ -1158,7 +1158,7 @@ namespace RFExplorerCommunicator
         private const string _Text = "Text";
         private const string _Params = "Params";
 
-        private const string _Version = "Version";  
+        private const string _Version = "Version";
         private const string _Title = "Title";
         private const string _DecodedBitsPos = "DecodedBitsPos";
         private const string _DecodedWords = "DecodedWords";
@@ -1175,11 +1175,11 @@ namespace RFExplorerCommunicator
             RFEBinaryPacketData.ParentCollection = this;
         }
 
-        public  event EventHandler ReportInfoEventPacketDataCollection;
+        public event EventHandler ReportInfoEventPacketDataCollection;
         /// <summary>
         /// Use this event to receive error or info notifications
         /// </summary>
-        private  void OnReportInfo(EventReportInfo eventArgs)
+        private void OnReportInfo(EventReportInfo eventArgs)
         {
             if (ReportInfoEventPacketDataCollection != null)
             {
@@ -1216,7 +1216,7 @@ namespace RFExplorerCommunicator
         {
             return "RF Explorer XML Sniffer v002";
         }
-   
+
         /// <summary>
         /// Create XML Schema used by rfsniffer file
         /// </summary>
@@ -1321,7 +1321,7 @@ namespace RFExplorerCommunicator
 
             if (m_XMLSnifferData.Tables.Count == 0)
                 CreateXMLSchema();
-            
+
             try
             {
                 int nIDTotal = 0;
@@ -1331,7 +1331,7 @@ namespace RFExplorerCommunicator
                     string sTempLine = "";
                     DataRow objRowPacketData = m_XMLSnifferData.Tables[_PacketData].NewRow();
                     objRowPacketData[_Version] = XML_FileHeaderVersioned_002();
-                    if (m_arrData[nPos].ChartTitle!=null)
+                    if (m_arrData[nPos].ChartTitle != null)
                         objRowPacketData[_Title] = m_arrData[nPos].ChartTitle;
                     else
                         objRowPacketData[_Title] = "";
@@ -1532,7 +1532,7 @@ namespace RFExplorerCommunicator
                         UInt16[] arrFilteredPos = null;
                         byte[] arrFilteredSamples = null;
                         byte[] arrDecodedBits = null;
-                        UInt32[] arrDecodedBitsPos = null; 
+                        UInt32[] arrDecodedBitsPos = null;
                         string[] arrDecodedWordText = null;
                         UInt32[] arrDecodedWordTextPos = null;
 
@@ -1581,7 +1581,7 @@ namespace RFExplorerCommunicator
 
                         //version 002
                         {
-							bool bOkV2=true;
+                            bool bOkV2 = true;
                             if (objRowPacketData[_Version] != DBNull.Value)
                             {
                                 sLine = (string)objRowPacketData[_Version];
@@ -1675,7 +1675,7 @@ namespace RFExplorerCommunicator
             catch (Exception obEx)
             {
                 ReportLog(obEx.Message.ToString());
-                bOKReadXML = false; 
+                bOKReadXML = false;
             }
             return bOKReadXML;
         }

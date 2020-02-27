@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,7 @@ namespace RFExplorerSimpleClient
 
         private void SimpleMainForm_Load(object sender, EventArgs e)
         {
-            GetConnectedPortsRFExplorer(); 
+            GetConnectedPortsRFExplorer();
             UpdateButtonStatus();
 
             m_RefreshTimer.Enabled = true;
@@ -196,7 +196,7 @@ namespace RFExplorerSimpleClient
         private void OnCommandA_Click(object sender, EventArgs e)
         {
             //Example command LCD ON, this command does not require wait for answer
-            if (m_objRFE!=null && m_objRFE.PortConnected)
+            if (m_objRFE != null && m_objRFE.PortConnected)
             {
                 m_objRFE.SendCommand_ScreenON();
                 Thread.Sleep(100); //Wait 100ms to wait for command to settle

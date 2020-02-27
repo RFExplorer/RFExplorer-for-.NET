@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -273,13 +273,27 @@ namespace RFExplorerCommunicator
                 m_ClickPanel.Click -= m_ClickHandler;
                 for (int nInd = 0; nInd < m_Groupbox.Controls.Count; nInd++)
                 {
-                    m_Groupbox.Controls[nInd].Visible = true;
+                    bool bVisible = true;
+                    Control objControl = m_Groupbox.Controls[nInd];
+                    if (!objControl.Enabled)
+                    {
+                        //If control is not enabled, maybe we should not make it visible, depending on the tag value true/false
+                        try
+                        {
+                            if (objControl.Tag != null)
+                                if (((bool)objControl.Tag) == false)
+                                    bVisible = false;
+                        }
+                        catch { }
+                    }
+                    if (bVisible)
+                        objControl.Visible = true;
                 }
                 m_Groupbox.ResumeLayout(true);
             }
             m_CollapseButton.Visible = true;
         }
-       
+
         public void Paint(Graphics objGraphics)
         {
             if (m_bCollapsed)

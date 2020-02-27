@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -77,7 +77,7 @@ namespace RFExplorerCommunicator
             }
         }
 
-        enum eVisualObjectType {TEXT_OBJ, NONE }
+        enum eVisualObjectType { TEXT_OBJ, NONE }
 
         /// <summary>
         /// Store chart position and text defined by a user
@@ -87,7 +87,7 @@ namespace RFExplorerCommunicator
         /// <param name="sText">user defined text</param>
         public VisualObject(float fX, float fY, string sText)
         {
-            X = fX; 
+            X = fX;
             m_fY = fY;
             m_sText = sText;
         }

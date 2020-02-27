@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-19 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -62,8 +62,8 @@ namespace RFExplorerCommunicator
 
         //pre-defined const values for different power level configurations organized as {L2,L1,L0,H3,H2,H1,H0}
         readonly double[,] m_arrDeltaAmplitude = {
-               {-3.23,	-6.24,	 -9.29,	  29.72,   26.71,	23.62,	 20.68},
-               {-3.22,	-6.25,	 -9.25,	  29.76,   26.85,	23.81,	 20.77},
+               {-3.23,  -6.24,   -9.29,   29.72,   26.71,   23.62,   20.68},
+               {-3.22,  -6.25,   -9.25,   29.76,   26.85,   23.81,   20.77},
                {-3.23,  -6.25,   -9.26 ,  29.89,   26.73,   23.79,   20.78},
                {-3.24,  -6.29,   -10.71,  29.87,   26.82,   23.7 ,   20.82},
                {-3.23,  -6.28,   -9.2  ,  30.01,   26.9 ,   23.87,   20.78},
@@ -219,7 +219,7 @@ namespace RFExplorerCommunicator
                {-0.58,  -4.06,   -8.32 ,  17.6 ,   18.23,   15.58,   11.9 },
                {-0.91,  -4.32,   -8.46 ,  17.26,   17.51,   14.82,   11.07},
                {-0.88,  -4.14,   -8.15 ,  17.49,   17.66,   14.81,   11.24},
-               {-0.74,  -4.13,   -8.29 ,  17.98,   18.09,   15.38,   11.64},  
+               {-0.74,  -4.13,   -8.29 ,  17.98,   18.09,   15.38,   11.64},
                {-0.82,  -4.4 ,   -8.47 ,  18.34,   18.53,   15.8 ,   12.05},
                {-0.97,  -4.53,   -8.87 ,  18.16,   18.39,   15.6 ,   11.86},
                {-0.92,  -4.8 ,   -9.19 ,  17.82,   17.97,   14.92,   11.35}

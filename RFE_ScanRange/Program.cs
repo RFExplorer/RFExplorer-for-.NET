@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for .NET - A Spectrum Analyzer for everyone!
-//Copyright © 2010-17 Ariel Rocholl, www.rf-explorer.com
+//Copyright © 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -18,13 +18,14 @@
 //=============================================================================
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Raspberry.IO.GeneralPurpose;
-using System.Runtime.InteropServices;
 using System.Reflection;
 using RFExplorerCommunicator;
+using System.Diagnostics;
+using Console_ConnectRange;
+using System.IO;
 
 namespace RFE_ScanRange
 {
@@ -42,13 +43,20 @@ namespace RFE_ScanRange
         static string g_sFileRFE = "";
         static UInt32 g_nSweepCounter = 0;
         static UInt16 g_nResolutionPoints = 112;
+        static int g_nTotalFiles = 0;//changes its value when /count is an argument
+        static bool g_bCountActive = false; //true if /count is an argument
+        static bool g_bTimeActive = false; //true if /time is an argument
+        static bool g_bHighSpeed = true;   //True if 500kbps and false ig 2400bps, used in RPi PinOut
+        //Note: g_bCountActive and g_bTimeActive can not be true at the same time
 
         static void Main(string[] args)
         {
             //start application by displaying some help on screen
+            TextWriterTraceListener objConsole = new ReportTraceListener(Console.Out);
+            Trace.Listeners.Add(objConsole);
             PrintHelp(args.Length == 0);
             if (args.Length == 0)
-                return; //no parameters, nothing to do, just finish here
+                return; //no parameters, nothing to do, just finish here                       
 
             //Create and initialize a RFECommunicator object to proxy a RF Explorer device (of any kind)
             g_objRFE = new RFECommunicator(true, IsIOT(args)); //Initialize a new Spectrum Analyzer object
@@ -56,6 +64,7 @@ namespace RFE_ScanRange
             g_objRFE.ReceivedConfigurationDataEvent += new EventHandler(OnRFE_ReceivedConfigData);
             g_objRFE.UpdateDataEvent += new EventHandler(OnRFE_UpdateData);
             g_objRFE.AutoConfigure = false;
+            g_objRFE.AutoClose = true;
 
             UpdateBaudrate(args);
 
@@ -66,25 +75,29 @@ namespace RFE_ScanRange
                 return; //if cannot connect to serial port, we cannot do anything else
             }
 
-            //g_objRFE.DebugSentTracesEnabled = true;
-            //g_objRFE.DebugTracesEnabled = true;
 
             //Request analyzer to send current configuration and enable sweep data dump
             if (UpdateFrequencyRange(args))
             {
                 g_objRFE.SendCommand_RequestConfigData();
+                UpdateNumberOfCsv(args);
                 UpdateSweepTime(args);
-                WaitAndProcess(2, false);
 
-                //Set working frequency range from command line parameters
-                if (SetFrequencyRange(args))
+                if (g_bTimeActive && g_bCountActive)
+                    Trace.WriteLine("ERROR: Incompatibility of parameters /time and /count");
+                else
                 {
-                    UpdateFileNames(args);
-                    //If correct, process responses and display output for some seconds
-                    WaitAndProcess(g_nTotalSeconds);
+                    WaitAndProcess(2, false);
+                    DeviceInputStage(args);
+                    //Set working frequency range from command line parameters
+                    if (SetFrequencyRange(args))
+                    {
+                        UpdateFileNames(args);
+                        //If correct, process responses and display output for some seconds
+                        WaitAndProcess(g_nTotalSeconds, true, g_bCountActive);
+                    }
                 }
             }
-
             //Close port and finish
             ClosePort();
         }
@@ -95,34 +108,45 @@ namespace RFE_ScanRange
         /// <param name="bParameters">Include command line parameters (true) or display current envinronment details</param>
         static void PrintHelp(bool bParameters)
         {
-            Console.WriteLine("RF Explorer ScanRange Tool - " + Assembly.GetExecutingAssembly().GetName().Version.ToString());
-            Console.WriteLine("---------------------------------------" + Environment.NewLine);
+            Trace.WriteLine("RF Explorer ScanRange Tool - " + Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            Trace.WriteLine("---------------------------------------" + Environment.NewLine);
             string sData = "";
             if (bParameters)
+            {
                 sData =
-                    "Format: " + Environment.NewLine +
-                    "    Console_ConnectRange [/IOT | /p:PORT] [/csv:path] [/time:secs] StartRangeMHZ StopRangeMHZ" + Environment.NewLine +
-                    "where: " + Environment.NewLine +
-                    "    /IOT: Connect to a Raspberry Pi assembled RF Explorer IoT board" + Environment.NewLine +
-                    "    /p: Connect to a USB port such as COM3 or /dev/ttyUSB0" + Environment.NewLine +
-                    "        Using AUTO assumes only RF Explorer connected to USB port" + Environment.NewLine +
-                    "    /s: [low|high] Baudrate speed being high=500Kbps default, and low=2400bps" + Environment.NewLine +
-                    "    /csv: Output CSV filename (no extension) to save consecutive scans" + Environment.NewLine +
-                    "    /rfe: Output .RFE binary filename (no extension) to save consecutive scans" + Environment.NewLine +
-                    "    /time: total seconds to scan before close automatically. If not specified" + Environment.NewLine +
-                    "       will scan 1 hour and close automatically." + Environment.NewLine +
-                    "       If set to 0 will do one single scan and close automatically." + Environment.NewLine +
-                    "       If set to -1 will run forever." + Environment.NewLine +
-                    "    /res: [high|normal|low] resolution used for scan data eq to 4096, 1024 or 112 points" + Environment.NewLine +
-                    "    StartRangeMHZ: is a number in range 15-2700MHz to start scan sweep" + Environment.NewLine +
-                    "    StopRangeMHZ: is a number in range 15-2700MHz to stop scan sweep" + Environment.NewLine +
-                    "       Note: Current limit for full range scanning is up to 1000MHz" + Environment.NewLine +
-                    "             Some models and configurations may have a reduced range" + Environment.NewLine +
-                    Environment.NewLine +
-                    "Keyboard control: " + Environment.NewLine +
-                    "    <Q> Finish application" + Environment.NewLine +
-                    "    <LEFT> move scan range to low frequency equals to span" + Environment.NewLine +
-                    "    <RIGHT> move scan range to high frequency equals to span" + Environment.NewLine;
+                   "Format: " + Environment.NewLine +
+                   "    </IOT | /p:PORT> [/s:[low|high]] [/csv:path] [/rfe:path] [/time:secs] [/res: [low|normal|high]] [/input:[dir|att|lna]] StartRangeMHZ  StopRangeMHZ " + Environment.NewLine +
+                   Environment.NewLine +
+                   "where: " + Environment.NewLine +
+                   "    /s: [low|high] Baudrate speed being high=500Kbps (default) and low=2400bps" + Environment.NewLine +
+                   "    /csv: Output CSV filename (no extension) to save consecutive scans" + Environment.NewLine +
+                   "    /rfe: Output .RFE binary filename (no extension) to save consecutive scans" + Environment.NewLine +
+                   "    /time: Total seconds to scan before close automatically. If not specified" + Environment.NewLine +
+                   "           will scan 1 hour and close automatically." + Environment.NewLine +
+                   "           If set to 0 will do one single scan and close automatically." + Environment.NewLine +
+                   "           If set to -1 will run forever." + Environment.NewLine +
+                   "           NOTE: Only one of / count or / time can be used as argument." + Environment.NewLine +
+                   "    /count: Number files to save before close automatically." + Environment.NewLine +
+                   "            NOTE: Only one of /count or /time can be used as argument." + Environment.NewLine +
+                   "    /res: [high|normal|low] resolution used for scan data eq to 4096, 1024 or 112 points" + Environment.NewLine +
+                   "    /input: [dir|att|lna] Select device input stage as dir=Direct Input, att=Attenuator 30dB or lna=Amplifier 25dB" + Environment.NewLine +
+                   Environment.NewLine +
+                   "Required Parameters:" + Environment.NewLine +
+                   "    /IOT: Connect to a Raspberry Pi assembled RF Explorer IoT board" + Environment.NewLine +
+                   "    /p: Connect to a USB port such as COM3 or /dev/ttyUSB0" + Environment.NewLine +
+                   "        Using AUTO assumes only RF Explorer device connected to USB port" + Environment.NewLine +
+                   "    NOTE: One of / IOT or / p parameters are required" + Environment.NewLine +
+                   "    StartRangeMHZ: Is a number in range 15-2700MHz to start scan sweep" + Environment.NewLine +
+                   "    StopRangeMHZ: Is a number in range 15-2700MHz to stop scan sweep" + Environment.NewLine +
+                   "    NOTE: Current limit for full range scanning is up to 1000MHz" + Environment.NewLine +
+                   "          Some models and configurations may have a reduced range" + Environment.NewLine +
+                   Environment.NewLine +
+                   "Keyboard control: " + Environment.NewLine +
+                   "    <Q> Finish application" + Environment.NewLine +
+                   "    <LEFT> Move scan range to low frequency equals to span" + Environment.NewLine +
+                   "    <RIGHT> Move scan range to high frequency equals to span" + Environment.NewLine;
+            }
+
             else
                 sData =
                     "  Computer: " + Environment.MachineName + Environment.NewLine +
@@ -133,9 +157,12 @@ namespace RFE_ScanRange
                     "  Platform: " + Environment.OSVersion.Platform + Environment.NewLine +
                     "  CLR:      " + Environment.Version + Environment.NewLine;
 
-            Console.WriteLine(sData);
+            Trace.WriteLine(sData);
         }
 
+        /// <summary>
+        /// Close specific serial port and finish
+        /// </summary>
         static void ClosePort()
         {
             if (m_pinConnection != null)
@@ -143,12 +170,20 @@ namespace RFE_ScanRange
                 m_pinConnection.Close();
                 m_pinConnection = null;
             }
-            g_objRFE.ClosePort();
             g_objRFE.Close();
-            g_objRFE = null;
+            g_objRFE.Dispose();
+            //g_objRFE = null;
         }
 
-        static void WaitAndProcess(int nSeconds, bool bCheckKeyboard=true)
+        /// <summary>
+        /// During this time process, user can write on the keyboard if it is active and it is checking keyboard.
+        /// If there is any new setting, it will sending it to the device
+        /// If bCountActive is active and g_nTotalFiles, number of files .csv created is equal to 0, then the function ends.
+        /// </summary>
+        /// <param name="nSeconds"></param>
+        /// <param name="bCheckKeyboard"></param>
+        /// <param name="bCountActive"> This means "/count:" is an argument. False by default </param>
+        static void WaitAndProcess(int nSeconds, bool bCheckKeyboard = true, bool bCountActive = false)
         {
             bool bRunForever = false;
             if (nSeconds == -1)
@@ -161,6 +196,8 @@ namespace RFE_ScanRange
                 //Process all pending messages received from device
                 g_objRFE.ProcessReceivedString(true, out sDummy);
 
+                if (bCountActive && g_nTotalFiles == 0)
+                    break;
                 //check if user pressed any key
                 if (bCheckKeyboard && Console.KeyAvailable)
                 {
@@ -174,11 +211,11 @@ namespace RFE_ScanRange
                         case ConsoleKey.Escape:
                         case ConsoleKey.Q:
                             //finish function and therefore end up closing the application
-                            Console.WriteLine("<Q> - Closing the application...");
+                            Trace.WriteLine("<Q> - Closing the application...");
                             return;
                         case ConsoleKey.LeftArrow:
-                            Console.WriteLine("<LEFT> - Updating scan to lower frequency...");
-                            Console.WriteLine("Current configuration - Start:" + g_objRFE.StartFrequencyMHZ.ToString("f3") + "MHZ, Stop: " + g_objRFE.StopFrequencyMHZ.ToString("f3") + "MHz, Span:" + fSpanMHZ.ToString("f3"));
+                            Trace.WriteLine("<LEFT> - Updating scan to lower frequency...");
+                            Trace.WriteLine("Current configuration - Start:" + g_objRFE.StartFrequencyMHZ.ToString("f3") + "MHZ, Stop: " + g_objRFE.StopFrequencyMHZ.ToString("f3") + "MHz, Span:" + fSpanMHZ.ToString("f3"));
                             //Set new start frequency, keeping same span
                             fStartMHz = fStartMHz - fSpanMHZ;
                             //Check start frequency is in valid device range
@@ -187,8 +224,8 @@ namespace RFE_ScanRange
                             bChangeSettings = true;
                             break;
                         case ConsoleKey.RightArrow:
-                            Console.WriteLine("<RIGHT> - Updating scan to higher frequency...");
-                            Console.WriteLine("Current configuration - Start:" + g_objRFE.StartFrequencyMHZ.ToString("f3") + "MHZ, Stop: " + g_objRFE.StopFrequencyMHZ.ToString("f3") + "MHz, Span:" + fSpanMHZ.ToString("f3"));
+                            Trace.WriteLine("<RIGHT> - Updating scan to higher frequency...");
+                            Trace.WriteLine("Current configuration - Start:" + g_objRFE.StartFrequencyMHZ.ToString("f3") + "MHZ, Stop: " + g_objRFE.StopFrequencyMHZ.ToString("f3") + "MHz, Span:" + fSpanMHZ.ToString("f3"));
                             //Set new start frequency, keeping same span
                             fStartMHz = fStartMHz + fSpanMHZ;
                             //Check start frequency is in valid device range
@@ -197,7 +234,7 @@ namespace RFE_ScanRange
                             bChangeSettings = true;
                             break;
                         default:
-                            Console.WriteLine("Ignored key.");
+                            Trace.WriteLine("Ignored key.");
                             break;
                     }
                     if (bChangeSettings)
@@ -205,19 +242,19 @@ namespace RFE_ScanRange
                         //Send new configuration
                         g_fStartMHZ = fStartMHz; //change flag value to recognize when new configuration is already in place
                         g_fStopMHZ = fStartMHz + fSpanMHZ;
-                        Console.WriteLine("New configuration - Start:" + g_fStartMHZ.ToString("f3") + "MHZ, Stop: " + g_fStopMHZ.ToString("f3") + "MHz");
+                        Trace.WriteLine("New configuration - Start:" + g_fStartMHZ.ToString("f3") + "MHZ, Stop: " + g_fStopMHZ.ToString("f3") + "MHz");
                         g_bIgnoreSweeps = true;
                         g_objRFE.UpdateDeviceConfig(fStartMHz, g_fStopMHZ, g_objRFE.AmplitudeTopDBM, g_objRFE.AmplitudeBottomDBM);
                     }
                 }
-            } while (bRunForever || ((DateTime.Now - objTimeStart).TotalSeconds < nSeconds));
+            } while ((bRunForever || ((DateTime.Now - objTimeStart).TotalSeconds < nSeconds)));
             //save file before closing, if any.
             SaveRFEFile();
         }
 
         static void OnRFE_ReceivedConfigData(object sender, EventArgs e)
         {
-            Console.WriteLine("-------- Received config settings");
+            Trace.WriteLine("-------- Received config settings");
             if (!g_bIgnoreSweeps)
                 SaveRFEFile();
             //we do not want mixed data sweep values, so clean old ones
@@ -229,11 +266,11 @@ namespace RFE_ScanRange
 
         static void SaveRFEFile()
         {
-            if (!String.IsNullOrEmpty(g_sFileRFE) && g_objRFE.SweepData.Count>0)
+            if (!String.IsNullOrEmpty(g_sFileRFE) && g_objRFE.SweepData.Count > 0)
             {
                 string sFile = g_sFileRFE + "_" + g_nSweepCounter.ToString("000") + "_" + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss") + ".rfe";
                 g_objRFE.SaveFileRFE(sFile, false);
-                Console.WriteLine("Saved file " + sFile);
+                Trace.WriteLine("Saved file " + sFile);
             }
         }
 
@@ -243,164 +280,248 @@ namespace RFE_ScanRange
             if (!g_bIgnoreSweeps)
             {
                 g_nSweepCounter++;
-                ushort nPeak = objSweep.GetPeakStep();
-                Console.WriteLine("Sweep: " + g_objRFE.SweepData.Count.ToString("D3") + " Peak: " + objSweep.GetFrequencyMHZ(nPeak).ToString("f3") + "MHz " + objSweep.GetAmplitudeDBM(nPeak).ToString("f1") + "dBm");
+                ushort nPeak = objSweep.GetPeakDataPoint();
+                Trace.WriteLine("Sweep: " + g_objRFE.SweepData.Count.ToString("D3") + " Peak: " + objSweep.GetFrequencyMHZ(nPeak).ToString("f3") + "MHz " + objSweep.GetAmplitudeDBM(nPeak).ToString("f1") + "dBm");
                 if (!String.IsNullOrEmpty(g_sFileCSV))
                 {
-                    string sFile = g_sFileCSV + "_" + g_nSweepCounter.ToString("0000") + "_" + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss") + ".csv";
-                    objSweep.SaveFileCSV(sFile, '\t', null);
-                    Console.WriteLine("Saved file " + sFile);
+                    if (!g_bCountActive || (g_nTotalFiles > 0)) //if g_bCountActive generate files only if g_nTotalFiles is greater than 0
+                    {
+                        string sFile = g_sFileCSV + "_" + g_nSweepCounter.ToString("0000") + "_" + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss") + ".csv";
+                        objSweep.SaveFileCSV(sFile, '\t', null);
+                        Trace.WriteLine("Saved file " + sFile);
+                        if (g_nTotalFiles > 0)
+                            g_nTotalFiles--; //reduce pending files to generate
+                    }
                 }
-                if (g_objRFE.SweepData.Count>100)
+                if (g_objRFE.SweepData.Count > 100)
                 {
                     SaveRFEFile();
                     g_objRFE.SweepData.CleanAll();
                 }
             }
-            //else
-            //{
-            //    Console.WriteLine("Ignored sweep " + objSweep.Dump());
-            //}
         }
 
+        /// <summary>
+        /// Update frequency range according to "StartRangeMHZ" (first value) and "StopRangeMHZ" (next value)
+        /// then check if "StopRangeMHZ" i greater than "StartRangeMHZ" this means that it is a valid range
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         static bool UpdateFrequencyRange(string[] args)
         {
             bool bOk = true;
-
-            //check command line frequency range arguments
-            double fStartMHZ = 0.0f;
-            double fStopMHZ = 0.0f;
-            foreach (string sVal in args)
+            try
             {
-                if (sVal.Contains("/"))
-                    continue;
+                //check command line frequency range arguments
+                double fStartMHZ = 0.0f;
+                double fStopMHZ = 0.0f;
+                foreach (string sVal in args)
+                {
+                    if (sVal.Contains("/"))
+                        continue;
 
-                if (fStartMHZ == 0.0f)
-                {
-                    //Get first frequency value
-                    fStartMHZ = Convert.ToDouble(sVal);
-                }
-                else
-                {
-                    //Get the second frequency value
-                    fStopMHZ = Convert.ToDouble(sVal);
-                    //Check frequency value is valid
-                    bOk = fStopMHZ > fStartMHZ;
+                    if (fStartMHZ == 0.0f)
+                    {
+                        //Get first frequency value
+                        fStartMHZ = Convert.ToDouble(sVal);
+                    }
+                    else
+                    {
+                        //Get the second frequency value
+                        fStopMHZ = Convert.ToDouble(sVal);
+                        //Check frequency value is valid
+                        bOk = fStopMHZ > fStartMHZ;
+                        if (!bOk)
+                            Trace.WriteLine("ERROR: Stop frequency lower or equal than Start frequency");
+                        break; //finish after 2nd value found
+                    }
+
+                    //if errors, no need to go on anymore
                     if (!bOk)
-                        Console.WriteLine("ERROR: Stop frequency lower than Start frequ!");
-                    break; //finish after 2nd value found
+                        break;
                 }
 
-                //if errors, no need to go on anymore
+                //Check if values were initialized
+                bOk = bOk && (fStartMHZ > 0.0f) && (fStopMHZ > 0.0f);
                 if (!bOk)
-                    break;
+                    Trace.WriteLine("ERROR: Start/Stop frequency values missing or out of range");
+
+                if (bOk)
+                {
+                    g_fStartMHZ = fStartMHZ; //change flag value to recognize when new configuration is already in place
+                    g_fStopMHZ = fStopMHZ;
+                    g_bIgnoreSweeps = true;
+                }
             }
-
-            //Check if values were initialized
-            bOk = bOk && (fStartMHZ > 0.0f) && (fStopMHZ > 0.0f);
-            if (!bOk)
-                Console.WriteLine("ERROR: Start/Stop frequency values missing or out of range");
-
-            if (bOk)
+            catch (Exception objExc)
             {
-                g_fStartMHZ = fStartMHZ; //change flag value to recognize when new configuration is already in place
-                g_fStopMHZ = fStopMHZ;
-                g_bIgnoreSweeps = true;
+                bOk = false;
+                Trace.WriteLine("ERROR: Frequency - " + objExc.ToString());
             }
-
             return bOk;
         }
 
+        /// <summary>
+        /// Sets the frequency range updating configuration of the device
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         static bool SetFrequencyRange(string[] args)
         {
             bool bOk = true;
-
             UpdateSweepPoints(args);
             WaitAndProcess(1, false);
-
+            //Check device connection, when device baudrate is different than COM port speed
+            if (g_objRFE.MainBoardModel == RFECommunicator.eModel.MODEL_NONE)
+            {
+                Trace.WriteLine("ERROR: Unknown connection, please, review RF Explorer device.");
+                return false;
+            }
             //Check frequency value is valid
+            Trace.WriteLine("Start/Stop: " + g_fStartMHZ.ToString() + "/" + g_fStopMHZ.ToString());
+            Trace.WriteLine("Start_min/Stop_max: " + g_objRFE.MinFreqMHZ.ToString() + "/" + g_objRFE.MaxFreqMHZ.ToString());
             bOk = g_fStartMHZ >= g_objRFE.MinFreqMHZ;
             bOk = bOk && g_fStartMHZ < g_objRFE.MaxFreqMHZ;
             if (!bOk)
-                Console.WriteLine("ERROR: Start frequency is outside range!");
+                Trace.WriteLine("ERROR: Start frequency is outside range!");
             else
             {
                 bOk = bOk && g_fStopMHZ <= g_objRFE.MaxFreqMHZ;
                 if (!bOk)
-                    Console.WriteLine("ERROR: Stop frequency is outside range!");
+                    Trace.WriteLine("ERROR: Stop frequency is outside range!");
             }
+
+            //Check if allowed span
+            if (bOk)
+            {
+                bOk = bOk && (g_objRFE.MinSpanMHZ - (g_fStopMHZ - g_fStartMHZ) <= 0.001);
+                if (!bOk)
+                    Trace.WriteLine("ERROR: Span is lower than Minimum Span allowed: " + g_objRFE.MinSpanMHZ.ToString("f3"));
+                else
+                {
+
+                    bOk = bOk && ((g_fStopMHZ - g_fStartMHZ) - g_objRFE.MaxSpanMHZ <= 0.001);
+                    if (!bOk)
+                        Trace.WriteLine("ERROR: Span is higher than Maximum Span allowed: " + g_objRFE.MaxSpanMHZ.ToString("f3"));
+                }
+            }
+
             if (bOk)
                 g_objRFE.UpdateDeviceConfig(g_fStartMHZ, g_fStopMHZ);
 
             return bOk;
         }
 
-        ///res: [high|normal|low]
+        /// <summary>
+        /// Checks if "/res:" is an argument and after ":" should be [high|normal|low] in each case, g_nResolutionPoints takes a different value
+        /// </summary>
+        /// <param name="args"></param>
         static void UpdateSweepPoints(string[] args)
         {
             string sRes = FindOptionValue(args, "/res:");
             if (!String.IsNullOrEmpty(sRes))
-            {
-                switch (sRes)
+            {   //Sweep data points resolution devices allowed (not SA 3G)
+                if (g_objRFE.IsHighResAvailable && !g_objRFE.ExpansionBoardActive || g_bIoTBoard)
                 {
-                    case "high": g_nResolutionPoints = 4096; break;
-                    case "low": g_nResolutionPoints = 112; break;
-
-                    default:
-                        if (g_bIoTBoard)
-                            g_nResolutionPoints = 1024;
-                        else
-                            g_nResolutionPoints = 112;
-                        break;
-
-                    case "normal": g_nResolutionPoints = 1024; break;
+                    switch (sRes)
+                    {
+                        case "high": g_nResolutionPoints = 4096; break;
+                        case "normal": g_nResolutionPoints = 1024; break;
+                        case "low": g_nResolutionPoints = 112; break;
+                        default:
+                            if (g_bIoTBoard)
+                                g_nResolutionPoints = 1024;
+                            else
+                                g_nResolutionPoints = 112;
+                            break;
+                    }
                 }
             }
-            Console.WriteLine("Resolution sweep points: " + g_nResolutionPoints);
+            Trace.WriteLine("Resolution sweep points: " + g_nResolutionPoints);
             g_objRFE.SendCommand_SweepDataPoints(g_nResolutionPoints);
         }
 
+        /// <summary>
+        /// Checks if "/count:" is an argument, if it is then checks if the number after ":" is greater than 0 and notnull or empty, then puts g_bCountActive=true and saves the number in g_nTotalFiles
+        /// </summary>
+        /// <param name="args"></param>
+        static void UpdateNumberOfCsv(string[] args)
+        {
+            string sCount = FindOptionValue(args, "/count:");
+            if (!String.IsNullOrEmpty(sCount) && Convert.ToInt32(sCount) > 0)
+            {
+                g_bCountActive = true;
+                g_nTotalFiles = Convert.ToInt32(sCount);
+                Trace.WriteLine("Count option: " + g_nTotalFiles + " files");
+            }
+        }
+
+        /// <summary>
+        /// Checks if "/time:" is an argument. If it is, saves the number after ":" in g_nTotalSeconds and puts g_bTimeActive = true; 
+        /// if is not an argument, g_nTotalSeconds has 3600 as default value and g_bTimeActive = false
+        /// </summary>
+        /// <param name="args"></param>
         static void UpdateSweepTime(string[] args)
         {
             string sTime = FindOptionValue(args, "/time:");
             if (!String.IsNullOrEmpty(sTime))
             {
+                g_bTimeActive = true;
                 g_nTotalSeconds = Convert.ToInt32(sTime);
-                Console.WriteLine("Time option: " + g_nTotalSeconds + " seconds");
+                Trace.WriteLine("Time option: " + g_nTotalSeconds + " seconds");
             }
         }
 
+        /// <summary>
+        /// Checks if "/s:" is an argument, if after ":" it's written low, g_nBaudrate = 2400 bps, else g_nBaudrate = 500000 bps
+        /// </summary>
+        /// <param name="args"></param>
         static void UpdateBaudrate(string[] args)
         {
             string sBaudrate = FindOptionValue(args, "/s:");
             if (!String.IsNullOrEmpty(sBaudrate))
             {
                 if (sBaudrate == "low")
+                {
                     g_nBaudrate = 2400;
-                else
+                    g_bHighSpeed = false;
+                }
+                else //when it is not low but not high, it is deafault (high)
+                {
                     g_nBaudrate = 500000;
-                Console.WriteLine("Baudrate speed: " + g_nBaudrate);
+                    g_bHighSpeed = true;
+                }
+                Trace.WriteLine("Baudrate speed: " + g_nBaudrate);
             }
         }
 
-
+        /// <summary>
+        /// Checks if "/csv:" and "/rfe:" are found as arguments, then saves the new name/path indicated after ":"
+        /// </summary>
+        /// <param name="args"></param>
         static void UpdateFileNames(string[] args)
         {
             string sFile = FindOptionValue(args, "/csv:");
             if (!String.IsNullOrEmpty(sFile))
             {
                 g_sFileCSV = sFile;
-                Console.WriteLine("CSV file path: " + g_sFileCSV);
+                Trace.WriteLine("CSV file path: " + g_sFileCSV);
             }
 
             sFile = FindOptionValue(args, "/rfe:");
             if (!String.IsNullOrEmpty(sFile))
             {
                 g_sFileRFE = sFile;
-                Console.WriteLine("RFE file path: " + g_sFileRFE);
+                Trace.WriteLine("RFE file path: " + g_sFileRFE);
             }
         }
 
+        /// <summary>
+        /// find option value after a string "sOption" in an array of string (arguments)
+        /// </summary>
+        /// <param name="args"></param>
+        /// <param name="sOption"></param>
+        /// <returns></returns>
         static string FindOptionValue(string[] args, string sOption)
         {
             string sResult = "";
@@ -413,62 +534,82 @@ namespace RFE_ScanRange
             return sResult;
         }
 
+        /// <summary>
+        /// Function that checks if one of the arguments is /IOT
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         static bool IsIOT(string[] args)
         {
-            if (args.Contains("/IOT", StringComparer.Ordinal))
+            bool bIsIoT = false;
+            if (args.Contains("/IOT", StringComparer.OrdinalIgnoreCase))
             {
                 //This is a Raspberry Pi with a RF Explorer IoT Hat
-                g_bIoTBoard = (RFECommunicator.IsRaspberry());
-                Console.WriteLine("Working in IoT - Raspberry Pi mode");
+                g_bIoTBoard = (RFECommunicator.IsRaspberryPlatform());
+                Trace.WriteLine("Working in IoT - Raspberry Pi mode");
                 if (!g_bIoTBoard)
                 {
-                    Console.WriteLine("ERROR: Unrecognized Raspberry Pi platform");
-                    return false;
+                    Trace.WriteLine("ERROR IoT: Unrecognized Raspberry Pi platform");
+                    bIsIoT = false;
                 }
-                return true;
+                bIsIoT = true;
             }
-            return false;
+            return bIsIoT;
         }
 
+        /// <summary>
+        /// Connect to specified serial port
+        /// It could be a IOTBoard, connect automatically if it is an device connected by USB or select a specified port from command line
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
         static bool ConnectPort(string[] args)
         {
             //Connect to the right UART port (may be USB in Windows/Unix/Mac or a Raspberry Mainboard)
             if (g_bIoTBoard)
             {
-                //Define pins to control baudrate (GPIO2 on Pin21) and force a HW reset of the MWSUB3G (Pin12)
-                OutputPinConfiguration pinGPIO2 = ConnectorPin.P1Pin21.Output();
-                m_pinConnection = new GpioConnection(pinGPIO2);
-                OutputPinConfiguration pinRESET = ConnectorPin.P1Pin12.Output();
-                m_pinConnection.Add(pinRESET);
+                try
+                {
+                    //Define pins to control baudrate (GPIO2 on Pin21) and force a HW reset of the MWSUB3G (Pin12)
+                    OutputPinConfiguration pinGPIO2 = ConnectorPin.P1Pin21.Output();
+                    m_pinConnection = new GpioConnection(pinGPIO2);
+                    OutputPinConfiguration pinRESET = ConnectorPin.P1Pin12.Output();
+                    m_pinConnection.Add(pinRESET);
 
-                //Reset sequence
-                m_pinConnection[pinRESET] = false;
-                Thread.Sleep(100);
-                m_pinConnection[pinGPIO2] = true; //true for 500Kbps, change to false for 2400bps low speed
-                m_pinConnection[pinRESET] = true;
-                Thread.Sleep(2500); //wait for initialization firmware code to finish startup
-                
-                //Open COM port from Raspberry mainboard
-                string sCOMPort = "/dev/ttyAMA0";
-                g_objRFE.ConnectPort(sCOMPort, g_nBaudrate, true);
-                Console.WriteLine("Connected to port " + sCOMPort);
+                    //Reset sequence
+                    m_pinConnection[pinRESET] = false;
+                    Thread.Sleep(100);
+                    m_pinConnection[pinGPIO2] = g_bHighSpeed; //true for 500Kbps, change to false for 2400bps low speed
+                    m_pinConnection[pinRESET] = true;
+                    Thread.Sleep(2500); //wait for initialization firmware code to finish startup
+
+                    //Open COM port from Raspberry mainboard
+                    string sCOMPort = "/dev/ttyAMA0";
+                    g_objRFE.ConnectPort(sCOMPort, g_nBaudrate, true);
+                    Trace.WriteLine("Connected to port " + sCOMPort);
+                    Thread.Sleep(500);
+                }
+                catch
+                {
+                    Trace.WriteLine("ERROR: Unable to connect IoT device");
+                }
             }
-            else if (args.Contains("/p:AUTO", StringComparer.Ordinal))
+            else if (args.Contains("/p:AUTO", StringComparer.OrdinalIgnoreCase))    //Accept /p:auto or /p:AUTO
             {
                 //This is any non-IoT platform with a single device connected to USB
                 if (g_objRFE.GetConnectedPorts())
                 {
                     if (g_objRFE.ValidCP2101Ports.Length == 1)
                     {
-                        bool bForceBaudrate = (RFECommunicator.IsRaspberry() && g_nBaudrate > 115200);
-                        g_objRFE.ConnectPort(g_objRFE.ValidCP2101Ports[0], g_nBaudrate, RFECommunicator.IsUnixLike() && !RFECommunicator.IsMacOS(), bForceBaudrate);
+                        bool bForceBaudrate = (RFECommunicator.IsUnixLike() && !RFECommunicator.IsMacOSPlatform());
+                        g_objRFE.ConnectPort(g_objRFE.ValidCP2101Ports[0], g_nBaudrate, RFECommunicator.IsUnixLike(), bForceBaudrate);
                     }
                 }
                 if (g_objRFE.PortConnected)
-                    Console.WriteLine("Connected to port " + g_objRFE.ValidCP2101Ports[0]);
+                    Trace.WriteLine("Connected to port " + g_objRFE.ValidCP2101Ports[0]);
                 else
                 {
-                    Console.WriteLine("ERROR: no port available, please review your connection");
+                    Trace.WriteLine("ERROR: No port available or several connections detected." + Environment.NewLine + "Please, review your RF Explorer connection");
                     return false;
                 }
             }
@@ -478,21 +619,71 @@ namespace RFE_ScanRange
                 int nPos = Array.FindIndex(args, x => x.StartsWith("/p:"));
                 if (nPos >= 0)
                 {
-                    string sCOMPort = args[nPos].Replace("/p:","");
-                    Console.WriteLine("Trying manual port: " + sCOMPort);
-                    g_objRFE.ConnectPort(sCOMPort, g_nBaudrate, RFECommunicator.IsUnixLike() && !RFECommunicator.IsMacOS());
-                    Console.WriteLine("Connected to port " + sCOMPort);
+                    string sCOMPort = args[nPos].Replace("/p:", "");
+                    Trace.WriteLine("Trying manual port: " + sCOMPort);
+                    g_objRFE.ConnectPort(sCOMPort, g_nBaudrate, RFECommunicator.IsUnixLike(), RFECommunicator.IsUnixLike() && !RFECommunicator.IsMacOSPlatform());
+                    Trace.WriteLine("Connected to port " + sCOMPort);
                 }
+                else
+                    Trace.WriteLine("ERROR: Please, insert /IOT or /p:PORT parameter");
             }
-
             return g_objRFE.PortConnected;
         }
+
         static void OnRFE_ReportLog(object sender, EventArgs e)
         {
             EventReportInfo objArg = (EventReportInfo)e;
             string sLine = objArg.Data;
             if (!sLine.StartsWith("::DBG"))
-                Console.WriteLine(sLine);
+            {
+                Trace.WriteLine(sLine);
+            }
+
+        }
+
+        /// <summary>
+        /// Select input stage device
+        /// </summary>
+        /// <param name="args"></param>
+        static void DeviceInputStage(string[] args)
+        {
+            try
+            {
+                string sInputStage = string.Empty;
+                if (!String.IsNullOrEmpty(sInputStage = FindOptionValue(args, "/input:")))
+                {
+                    WaitAndProcess(1, true, g_bCountActive);//Must wait a maximum of 1 second for that RFECommunicator update data before changing input stage. 
+
+
+                    if (g_objRFE.IsInputStageAvailable && !g_objRFE.ExpansionBoardActive || g_bIoTBoard)
+                    {
+                        switch (sInputStage)
+                        {
+                            case "att":
+                                if (g_objRFE.InputStage != RFECommunicator.eInputStage.Attenuator_30dB)
+                                    g_objRFE.InputStage = RFECommunicator.eInputStage.Attenuator_30dB;
+                                break;
+                            case "lna":
+                                if (g_objRFE.InputStage != RFECommunicator.eInputStage.LNA_25dB)
+                                    g_objRFE.InputStage = RFECommunicator.eInputStage.LNA_25dB;
+                                break;
+                            case "dir":
+                                if (g_objRFE.InputStage != RFECommunicator.eInputStage.Direct)
+                                    g_objRFE.InputStage = RFECommunicator.eInputStage.Direct;
+                                break;
+                            default:
+                                Trace.WriteLine("ERROR: Value incorrect in Input Stage");
+                                break;
+                        }
+                    }
+                    else
+                        Trace.WriteLine("ERROR: Input Stage not supported");
+                }
+            }
+            catch (Exception objEx)
+            {
+                Trace.WriteLine("ERROR: Set Input Stage - " + objEx.Message);
+            }
         }
     }
 }
