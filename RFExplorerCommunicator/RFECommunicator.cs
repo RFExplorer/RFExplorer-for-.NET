@@ -1,6 +1,6 @@
 //============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,6 @@ using System.Security;
 using System.Runtime.InteropServices;
 using System.Globalization;
 
-
 namespace RFExplorerCommunicator
 {
     /// <summary>
@@ -56,7 +55,7 @@ namespace RFExplorerCommunicator
     /// </summary>
     public partial class RFECommunicator : IDisposable
     {
-        #region constants
+        #region Constants
         public const float MIN_AMPLITUDE_DBM = -140.0f;
         public const float MAX_AMPLITUDE_DBM = 50.0f;
         public const float MIN_AMPLITUDE_DBM_DEVICE = -120.0f;
@@ -102,11 +101,15 @@ namespace RFExplorerCommunicator
         public const double RFE_SA_MIN_SPAN_MHZ = 0.112;
         public const Int32 RFE_MIN_SWEEP_POINTS = 112;
         public const Int32 RFE_MIN_SWEEP_STEPS = RFE_MIN_SWEEP_POINTS - 1;
+        public const int DEFAULT_RESOLUTION_HIGH_RES = 512;         //Sweep points for optimal resolution in devices with high res support 
 
         public const float MAX_FREQ_OFFSET_MHZ = 10000f;
         public const float MIN_FREQ_OFFSET_MHZ = -10000f;
-        public const double MAX_AMP_OFFSET_DBM = 100;
-        public const double MIN_AMP_OFFSET_DBM = -100;
+        public const double MAX_AMP_OFFSET_DB = 100;
+        public const double MIN_AMP_OFFSET_DB = -100;
+
+        public const double MAX_LIMITLINE_OFFSET_DB = 100;
+        public const double MIN_LIMITLINE_OFFSET_DB = 0;
 
         public const string _RFE_File_Extension = ".rfe";
         public const string _CSV_File_Extension = ".csv";
@@ -130,9 +133,9 @@ namespace RFExplorerCommunicator
         private const string _Acknowldedge = "#ACK";
         private const string _ResetString = "(C) Ariel Rocholl ";
 
-        private const string m_sAnalyzerStandard_FirmwareCertified = "01.28";           //Firmware version of Standard Analyzer which was tested and certified with this PC Client
-        private const string m_sAnalyzerPlus_FirmwareCertified = "03.12";               //Firmware version of Plus Analizer models (WSUB1G+) which was tested and certified with this PC Client
-        private const string m_sGeneratorStandard_FirmwareCertified = "01.31";          //Firmware version of Generator which was tested and certified with this PC Client
+        private const string m_sAnalyzerStandard_FirmwareCertified = "01.33";           //Firmware version of Standard Analyzer which was tested and certified with this PC Client
+        private const string m_sAnalyzerPlus_FirmwareCertified = "03.28";               //Firmware version of Plus Analizer models (WSUB1G+) which was tested and certified with this PC Client
+        private const string m_sGeneratorStandard_FirmwareCertified = "01.34";          //Firmware version of Generator which was tested and certified with this PC Client
         private const string m_sRFExplorerFirmwareCertifiedAnalyzerAudioPro = "03.08"; //Firmware version of RF Explorer PLUS analyzer which was tested and certified with this PC Client
         private const string m_sAnalyzerIoT_FirmwareCertified = "01.15";                //Firmware version of IoT module Analyzer which was tested and certified with this PC Client
 
@@ -242,6 +245,10 @@ namespace RFExplorerCommunicator
             MODEL_4G_PLUS = 13,
             MODEL_6G_PLUS = 14,
 
+            MODEL_W5G3G = 16,
+            MODEL_W5G4G = 17,
+            MODEL_W5G5G = 18,
+
             MODEL_RFGEN = 60, //60
             MODEL_RFGEN_EXPANSION = 61,  //61
 
@@ -255,7 +262,15 @@ namespace RFExplorerCommunicator
         /// </summary>
         public bool IsMainboardAnalyzerPlus
         {
-            get { return MainBoardModel == eModel.MODEL_WSUB1G_PLUS || IsAudioPro; }
+            get { return MainBoardModel == eModel.MODEL_WSUB1G_PLUS || IsAudioPro || IsMW5G; }
+        }
+
+        /// <summary>
+        /// Return true if the device is any submodel of MW5G regardless frequency range
+        /// </summary>
+        public bool IsMW5G
+        {
+            get { return (m_eMainBoardModel == eModel.MODEL_W5G3G || m_eMainBoardModel == eModel.MODEL_W5G4G || m_eMainBoardModel == eModel.MODEL_W5G5G); }
         }
 
         /// <summary>
@@ -266,6 +281,40 @@ namespace RFExplorerCommunicator
         public bool IsMWSUB3G
         {
             get { return (m_eMainBoardModel == eModel.MODEL_WSUB3G && m_eExpansionBoardModel == eModel.MODEL_NONE); }
+        }
+
+        /// <summary>
+        /// Property true if the device connected is actually a MWSUB3G or MW5G
+        /// </summary>
+        public bool IsIoT
+        {
+            get { return (IsMWSUB3G || IsMW5G); }
+        }
+
+        /// <summary>
+        /// True if 6G/6G+ is in 5GHZ Wifi mode and firmware is v3.15 for PLUS / v1.30 for STANDARD or newer.
+        /// </summary>
+        public bool IsWifi5GHz_28ch
+        {
+            //Check WiFi range to ensure WiFi mode and sweep points for new FW
+            get { return IsWifi5GHz && ((FreqSpectrumSteps + 1) == 28); }
+        }
+
+        /// <summary>
+        /// True if 6G/6G+ is in 5GHZ Wifi mode and firmware is older than v3.15 for PLUS or 1.30 for STANDARD.
+        /// </summary>
+        public bool IsWifi5GHz_13ch
+        {
+            //Check WiFi range to ensure WiFi mode and sweep points for old FW
+            get { return IsWifi5GHz && ((FreqSpectrumSteps + 1) == 13); }
+        }
+
+        /// <summary>
+        /// True if 6G/6G+ is in 5GHz WiFi band, false if 2.4GHz 
+        /// </summary>
+        public bool IsWifi5GHz
+        {
+            get { return ((ActiveModel == eModel.MODEL_6G) || (ActiveModel == eModel.MODEL_6G_PLUS)) && (StartFrequencyMHZ >= 5160); }
         }
 
         /// <summary>
@@ -307,7 +356,8 @@ namespace RFExplorerCommunicator
         /// </summary>
         public bool IsHighResAvailable
         {
-            get { return (m_eActiveModel == eModel.MODEL_WSUB1G_PLUS || IsActive4G6GPlus || IsAudioPro || IsMWSUB3G); }
+            //High resolution is not supported in Wifi mode
+            get { return ((m_eActiveModel == eModel.MODEL_WSUB1G_PLUS || IsActive4G6GPlus || IsAudioPro || IsMWSUB3G || IsMW5G) && m_eMode != eMode.MODE_WIFI_ANALYZER); }
         }
 
         /// <summary>
@@ -315,9 +365,34 @@ namespace RFExplorerCommunicator
         /// </summary>
         public bool IsInputStageAvailable
         {
-            get { return (m_eActiveModel == eModel.MODEL_WSUB1G_PLUS || IsActive4G6GPlus || IsAudioPro || IsMWSUB3G); }
+            get { return (m_eActiveModel == eModel.MODEL_WSUB1G_PLUS || m_eActiveModel == eModel.MODEL_2400_PLUS || IsAudioPro || IsMWSUB3G) || IsActive4G6GPlus; }
         }
 
+        /// <summary>
+        /// Returns true if device 2.4G+ allows choose input stage between Direct and LNA 12dB
+        /// Only for FW newer than 3.14
+        /// </summary>
+        public bool IsInputStageAvailableFor24GP
+        {
+            get { return m_eActiveModel == eModel.MODEL_2400_PLUS && IsFirmwareSameOrNewer(3.15); }
+        }
+
+        /// <summary>
+        /// Returns true if device allows Wifi Analyzer as operational mode
+        /// </summary>
+        public bool IsWiFiAnalyzerModeAvailable
+        {
+            get
+            {
+                return (m_eActiveModel == eModel.MODEL_2400 ||
+                        m_eActiveModel == eModel.MODEL_2400_PLUS ||
+                       (m_eActiveModel == eModel.MODEL_WSUB3G && !IsMWSUB3G) || //Iot module and AudioPro not support Wifi mode
+                        m_eActiveModel == eModel.MODEL_4G_PLUS ||
+                        m_eActiveModel == eModel.MODEL_6G ||
+                        m_eActiveModel == eModel.MODEL_6G_PLUS ||
+                        IsMW5G);
+            }
+        }
         #endregion
 
         /// <summary>
@@ -346,6 +421,7 @@ namespace RFExplorerCommunicator
         }
         /// <summary>
         /// Values used to compensate input stage data sent by device, which is defined at 8bits limit
+        /// 2.4G+ must never use this array as it internally adjust for LNA/Direct offset
         /// </summary>
         float[] m_arrInputStageOffsetDB = { 0f, 30f, -25f, 60f };
 
@@ -354,7 +430,13 @@ namespace RFExplorerCommunicator
         /// </summary>
         public float InputStageAttenuationDB
         {
-            get { return (m_arrInputStageOffsetDB[Convert.ToByte(m_eInputStage)]); }
+            get
+            {
+                if ((m_eActiveModel == eModel.MODEL_2400_PLUS) || (Convert.ToByte(m_eInputStage) >= m_arrInputStageOffsetDB.Length))
+                    return 0f; //the 2.4G+ compensates values internally in firmware
+                else
+                    return (m_arrInputStageOffsetDB[Convert.ToByte(m_eInputStage)]);
+            }
         }
 
         public enum eInputStage
@@ -362,18 +444,29 @@ namespace RFExplorerCommunicator
             Direct = 0,
             Attenuator_30dB,
             LNA_25dB,
-            Attenuator_60dB
+            Attenuator_60dB,
+            LNA_12dB
         };
 
         eInputStage m_eInputStage = eInputStage.Direct;
-        /// <summary>        /// Get or set InputStage in available models (do not use from incompatible models)
+        /// <summary>        
+        /// Get or set InputStage in available models (do not use from incompatible models)
         /// </summary>
         public eInputStage InputStage
         {
             get { return m_eInputStage; }
             set
             {
-                SendCommand("a" + (Convert.ToByte(value)).ToString());
+                if (IsInputStageAvailable)
+                {
+                    byte nValue = Convert.ToByte(value);
+                    if (m_eActiveModel == eModel.MODEL_2400_PLUS)
+                    {
+                        if (value == eInputStage.LNA_12dB)
+                            nValue = Convert.ToByte(eInputStage.LNA_25dB); //the device does not know about 12dB
+                    }
+                    SendCommand("a" + nValue.ToString());
+                }
             }
         }
 
@@ -443,10 +536,11 @@ namespace RFExplorerCommunicator
         public string m_sGPSLongitude = "";
         public string m_sGPSLattitude = "";
 
+#if UNIX_LIKE
         //variables will look into system to know if it is Unix, Linux, etc
         bool m_bUnix = false;
         bool m_bWine = false;
-
+#endif
         //used to create readable text together with eModel enum
         static string[] arrModels = null;
 
@@ -472,7 +566,6 @@ namespace RFExplorerCommunicator
         /// </summary>
         static ePlatformChecked m_eIsRaspberry = ePlatformChecked.UNKNOWN;
 
-
         private void InitializeModels()
         {
             arrModels = new string[256];
@@ -487,6 +580,9 @@ namespace RFExplorerCommunicator
             arrModels[(int)eModel.MODEL_WSUB1G] = "WSUB1G";
             arrModels[(int)eModel.MODEL_2400] = "2.4G";
             arrModels[(int)eModel.MODEL_WSUB3G] = "WSUB3G";
+            arrModels[(int)eModel.MODEL_W5G3G] = "MW5G 3GHz";
+            arrModels[(int)eModel.MODEL_W5G4G] = "MW5G 4GHz";
+            arrModels[(int)eModel.MODEL_W5G5G] = "MW5G 5GHz";
             arrModels[(int)eModel.MODEL_6G] = "6G";
             arrModels[(int)eModel.MODEL_WSUB1G_PLUS] = "WSUB1G_PLUS";
             arrModels[(int)eModel.MODEL_AUDIOPRO] = "PROAUDIO";
@@ -566,6 +662,15 @@ namespace RFExplorerCommunicator
                     case eModel.MODEL_RFGEN_EXPANSION:
                         sCompressedName = "RFGENCOMBO";
                         break;
+                    case eModel.MODEL_W5G3G:
+                        sCompressedName = "MW5G_3G";
+                        break;
+                    case eModel.MODEL_W5G4G:
+                        sCompressedName = "MW5G_4G";
+                        break;
+                    case eModel.MODEL_W5G5G:
+                        sCompressedName = "MW5G_5G";
+                        break;
                     default:
                         break;
                 }
@@ -594,7 +699,26 @@ namespace RFExplorerCommunicator
             return eReturn;
         }
 
+        /// <summary>
+        /// Get humman readable model type text
+        /// </summary>
+        /// <param name="eMainBoard">Main board model</param>
+        /// <param name="eExpansionBoard">Expansion board model</param>
+        /// <param name="bIsAudioPro">True if audiopro</param>
+        /// <returns>Model name</returns>
         public string GetModelTypeText(eModel eMainBoard, eModel eExpansionBoard, bool bIsAudioPro)
+        {
+            return GetModelType(eMainBoard, eExpansionBoard, bIsAudioPro);
+        }
+
+        /// <summary>
+        /// Get humman readable model type text
+        /// </summary>
+        /// <param name="eMainBoard">Main board model</param>
+        /// <param name="eExpansionBoard">Expansion board model</param>
+        /// <param name="bIsAudioPro">True if audiopro</param>
+        /// <returns>Model name</returns>
+        public static string GetModelType(eModel eMainBoard, eModel eExpansionBoard, bool bIsAudioPro)
         {
             string sModelName = "";
             string sModelTechnology = eMainBoard.ToString();
@@ -616,8 +740,11 @@ namespace RFExplorerCommunicator
                 case "868": sModelName = "868M "; break;
                 case "915": sModelName = " 915M "; break;
                 case "2400": sModelName = "2.4G "; break;
-                case "RFGEN": sModelName = "RFE6GEN "; break;
+                case "RFGEN":
+                    sModelName = "RFE6GEN "; break;
+                case "RFGEN RFGEN EXPANSION":
                 case "RFGEN EXPANSION": sModelName = "RFEGEN Combo "; break;
+                case "AUDIOPRO": sModelName = "ProAudio"; break;
                 case "WSUB3G":
                     if (bIsAudioPro)
                         sModelName = "ProAudio";
@@ -817,12 +944,12 @@ namespace RFExplorerCommunicator
         }
 
         /// <summary>
-        /// Returns power channel over the selected bandwith captured. The power is instantaneous real time
+        /// Returns power channel over the selected bandwith captured. The power is instantaneous real time based on the selected signal type
         /// </summary>
         /// <param name="nSweepIndex">Number of selected SweepData</param>
         /// <param name="fStartMHZ">Initial Frequency of Channel</param>
         /// <param name="fEndMHZ">Final Frequency of Channel</param>
-        /// <param name="eSignalType">Enum of Sygnal Type</param>
+        /// <param name="eSignalType">Signal Type to use for calculation (currently supported realtime only)</param>
         /// <param name="eAmplitudeUnit">Enum of current unit of Amplitude</param>
         /// <returns>Channel power in currentUnit/span</returns>
         public double CalculatePowerChannel(UInt16 nSweepIndex, double fStartMHZ, double fEndMHZ, RFExplorerSignalType eSignalType, eAmplitudeUnit eAmplitudeUnit)
@@ -840,15 +967,23 @@ namespace RFExplorerCommunicator
                 {
                     RFESweepData objSweepData = this.SweepData.GetData(nSweepIndex);
 
-                    for (UInt16 nDataPoint = 0; nDataPoint < m_objPartialSweep.TotalDataPoints; nDataPoint++)//m_objPartialSweep has same points as objSweepData
+                    try
                     {
-                        if (nDataPoint < m_objPartialSweep.AvailableDataPoints)
+                        Monitor.Enter(m_objPartialSweep);
+                        for (UInt16 nDataPoint = 0; nDataPoint < m_objPartialSweep.TotalDataPoints; nDataPoint++)//m_objPartialSweep has same points as objSweepData
                         {
-                            if ((m_objPartialSweep.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (m_objPartialSweep.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
-                                fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(m_objPartialSweep.GetAmplitudeDBM(nDataPoint));
+                            if (nDataPoint < m_objPartialSweep.AvailableDataPoints)
+                            {
+                                if ((m_objPartialSweep.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (m_objPartialSweep.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
+                                    fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(m_objPartialSweep.GetAmplitudeDBM(nDataPoint));
+                            }
+                            else if (objSweepData != null && (objSweepData.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (objSweepData.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
+                                fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(objSweepData.GetAmplitudeDBM(nDataPoint));
                         }
-                        else if (objSweepData != null && (objSweepData.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (objSweepData.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
-                            fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(objSweepData.GetAmplitudeDBM(nDataPoint));
+                    }
+                    finally
+                    {
+                        Monitor.Exit(m_objPartialSweep);
                     }
                 }
                 if (fPowerChannelTemp > 0.0f)
@@ -865,15 +1000,24 @@ namespace RFExplorerCommunicator
                 {
                     RFESweepData objSweepData = this.SweepData.GetData(nSweepIndex);
 
-                    for (UInt16 nDataPoint = 0; nDataPoint < m_objPartialSweep.TotalDataPoints; nDataPoint++)//m_objPartialSweep has same points as objSweepData
+                    try
                     {
-                        if (nDataPoint < m_objPartialSweep.AvailableDataPoints)
+                        Monitor.Enter(m_objPartialSweep);
+                        for (UInt16 nDataPoint = 0; nDataPoint < m_objPartialSweep.TotalDataPoints; nDataPoint++)//m_objPartialSweep has same points as objSweepData
                         {
-                            if ((m_objPartialSweep.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (m_objPartialSweep.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
-                                fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(m_objPartialSweep.GetAmplitudeDBM(nDataPoint));
+                            if (nDataPoint < m_objPartialSweep.AvailableDataPoints)
+                            {   //When there are partial sweep, get its points
+                                if ((m_objPartialSweep.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (m_objPartialSweep.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
+                                    fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(m_objPartialSweep.GetAmplitudeDBM(nDataPoint));
+                            }
+                            //Added objSweepData != null contition to avoid crash in first partial sweep (no complete sweep available)
+                            else if (objSweepData != null && (objSweepData.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (objSweepData.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
+                                fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(objSweepData.GetAmplitudeDBM(nDataPoint));
                         }
-                        else if (objSweepData != null && (objSweepData.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (objSweepData.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
-                            fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(objSweepData.GetAmplitudeDBM(nDataPoint));
+                    }
+                    finally
+                    {
+                        Monitor.Exit(m_objPartialSweep);
                     }
                 }
 
@@ -904,16 +1048,30 @@ namespace RFExplorerCommunicator
             if (eSignalType == RFExplorerSignalType.Realtime)
             {
                 RFESweepData objSweepData = this.SweepData.GetData(nSweepIndex);
-
-                for (UInt16 nDataPoint = 0; nDataPoint < m_objPartialSweep.TotalDataPoints; nDataPoint++)//m_objPartialSweep has same points as objSweepData
+                try
                 {
-                    if (nDataPoint < m_objPartialSweep.AvailableDataPoints)
+                    Monitor.Enter(m_objPartialSweep);
+                    for (UInt16 nDataPoint = 0; nDataPoint < m_objPartialSweep.TotalDataPoints; nDataPoint++)//m_objPartialSweep has same points as objSweepData
                     {
-                        if ((m_objPartialSweep.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (m_objPartialSweep.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
-                            fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(m_objPartialSweep.GetAmplitudeDBM(nDataPoint));
+                        double fPointFreq = 0.0f;
+                        if ((m_objPartialSweep != null) && (nDataPoint < m_objPartialSweep.AvailableDataPoints))
+                        {   //When there are partial sweep, get its points
+                            fPointFreq = m_objPartialSweep.GetFrequencyMHZ(nDataPoint);
+                            if (fPointFreq >= fStartMHZ && fPointFreq < fEndMHZ)
+                                fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(m_objPartialSweep.GetAmplitudeDBM(nDataPoint));
+                        }
+                        //Added objSweepData != null condition to avoid crash in first partial sweep (no complete sweep available)
+                        else if (objSweepData != null)
+                        {
+                            fPointFreq = objSweepData.GetFrequencyMHZ(nDataPoint);
+                            if (fPointFreq >= fStartMHZ && fPointFreq < fEndMHZ)
+                                fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(objSweepData.GetAmplitudeDBM(nDataPoint));
+                        }
                     }
-                    else if (objSweepData != null && (objSweepData.GetFrequencyMHZ(nDataPoint) >= fStartMHZ) && (objSweepData.GetFrequencyMHZ(nDataPoint) < fEndMHZ))
-                        fPowerChannelTemp += RFECommunicator.Convert_dBm_2_Watt(objSweepData.GetAmplitudeDBM(nDataPoint));
+                }
+                finally
+                {
+                    Monitor.Exit(m_objPartialSweep);
                 }
             }
 
@@ -948,6 +1106,59 @@ namespace RFExplorerCommunicator
                 fPowerChannelDBM = MinAmplitudeNormalizedDBM;
 
             return fPowerChannelDBM;
+        }
+
+        /// <summary>
+        /// Get properly unit for Watts
+        /// </summary>
+        /// <param name="fPowerWatt">Power in Watts</param>
+        /// <returns>Unit</returns>
+        public string CalculateUnitPowerWatt(ref double fPowerWatt)
+        {
+            string sWatt = " Watt";
+
+            if (fPowerWatt < 0.5E-21)
+            {
+                fPowerWatt *= 1E24;
+                sWatt = " yW";
+            }
+            else if (fPowerWatt < 0.5E-18)
+            {
+                fPowerWatt *= 1E21;
+                sWatt = " zW";
+            }
+            else if (fPowerWatt < 0.5E-15)
+            {
+                fPowerWatt *= 1E18;
+                sWatt = " aW";
+            }
+            else if (fPowerWatt < 0.5E-12)
+            {
+                fPowerWatt *= 1E15;
+                sWatt = " fW";
+            }
+            else if (fPowerWatt < 0.5E-9)
+            {
+                fPowerWatt *= 1E12;
+                sWatt = " pW";
+            }
+            else if (fPowerWatt < 0.5E-6)
+            {
+                fPowerWatt *= 1E9;
+                sWatt = " nW";
+            }
+            else if (fPowerWatt < 0.5E-3)
+            {
+                fPowerWatt *= 1E6;
+                sWatt = " uW";
+            }
+            else if (fPowerWatt < 0.5f)
+            {
+                fPowerWatt *= 1E3;
+                sWatt = " mW";
+            }
+
+            return sWatt;
         }
 
         //The RF model installed in main board
@@ -1018,10 +1229,30 @@ namespace RFExplorerCommunicator
             }
             catch (Exception objEx)
             {
-                ReportLog(objEx.ToString(), true);
+                ReportLog(objEx.ToString() + " - FW: " + fVersionWanted.ToString(), true);
             }
 
             return bReturn;
+        }
+
+        /// <summary>
+        /// True if Workaround is needed and false otherwise. 
+        /// It is a workaround to fix firmware bug in models older than v3.19(PLUS) or v1.18 (Standards) versions
+        /// Avoid device LCD bad redrawing switching module
+        /// </summary>
+        public bool WorkaroundBugSwitchingModule
+        {
+            get
+            {
+                bool bReturn = false;
+
+                if (IsMainboardAnalyzerPlus)
+                    bReturn = (IsFirmwareSameOrNewer(3.10) && !IsFirmwareSameOrNewer(3.19));
+                else
+                    bReturn = !IsFirmwareSameOrNewer(1.28);
+
+                return bReturn;
+            }
         }
 
         /// <summary>
@@ -1144,10 +1375,9 @@ namespace RFExplorerCommunicator
             get { return m_sSweepSpeed; }
         }
 
-
-
-
-        //The current operational mode
+        /// <summary>
+        /// Spectrum Analyzer operational modes available
+        /// </summary>
         public enum eMode
         {
             MODE_SPECTRUM_ANALYZER = 0,
@@ -1164,6 +1394,9 @@ namespace RFExplorerCommunicator
         };
 
         eMode m_eMode = eMode.MODE_SPECTRUM_ANALYZER;
+        /// <summary>
+        /// Spectrum Analyzer operational mode
+        /// </summary>
         public eMode Mode
         {
             get { return m_eMode; }
@@ -1540,7 +1773,10 @@ namespace RFExplorerCommunicator
         /// <returns></returns>
         public double CalculateFrequencySpanMHZ()
         {
-            return StepFrequencyMHZ * FreqSpectrumSteps;
+            if (m_eMode == eMode.MODE_WIFI_ANALYZER && (m_eActiveModel == eModel.MODEL_6G || m_eActiveModel == RFECommunicator.eModel.MODEL_6G_PLUS))
+                return 645;
+            else
+                return StepFrequencyMHZ * FreqSpectrumSteps;
         }
 
         /// <summary>
@@ -1814,8 +2050,7 @@ namespace RFExplorerCommunicator
             }
         }
 
-
-        SerialPort m_serialPortObj;                 //serial port object
+        SerialPort m_serialPortObj = null; //serial port object
 
         volatile bool m_bDebugTracesSent = false;
         /// <summary>
@@ -1855,49 +2090,24 @@ namespace RFExplorerCommunicator
         public RFEMemoryBlock[] m_arrRAM1 = new RFEMemoryBlock[8];
         public RFEMemoryBlock[] m_arrRAM2 = new RFEMemoryBlock[8];
 
-        bool m_bPartialSweepReceived = false;
         /// <summary>
-        /// True when a partial sweep has been received, false when is a complete sweep
+        /// This variable will help to report the firmware version problem only once.
         /// </summary>
-        public bool PartialSweepReceived
-        {
-            get
-            {
-                return m_bPartialSweepReceived;
-            }
+        private bool m_bWrongDataReportDisplayed = false;
 
-            set
-            {
-                m_bPartialSweepReceived = value;
-            }
-        }
-        RFESweepDataPartial m_objPartialSweep;
+        bool m_bMemoryBlockReceived = false;
         /// <summary>
-        /// Stores sweep points of a sweep to draw until the full sweep has arrived from the device
-        /// </summary>                                 
-        public RFESweepDataPartial PartialSweep
+        /// True if memory block is received, otherwise false. You should use "get" property to initialize state.
+        /// </summary>
+        public bool MemoryBlockReceived
         {
             get
             {
-                return m_objPartialSweep;
+                bool bCurrentMemoryBlockReceived = m_bMemoryBlockReceived;
+                m_bMemoryBlockReceived = false;
+                return bCurrentMemoryBlockReceived;
             }
-
-            set
-            {
-                m_objPartialSweep = value;
-            }
-        }
-
-        RFESweepDataPartial m_objMaxHoldPartialSweep;
-        /// <summary>
-        /// Stores sweep points of a max hold sweep to draw until the full sweep has arrived from the device
-        /// </summary>                                 
-        public RFESweepDataPartial MaxHoldPartialSweep
-        {
-            get
-            {
-                return m_objMaxHoldPartialSweep;
-            }
+            set { m_bMemoryBlockReceived = value; }
         }
 
         #endregion
@@ -1962,7 +2172,7 @@ namespace RFExplorerCommunicator
             m_bIntendedAnalyzer = bIntendedAnalyzer;
             g_bIsIOT = bIoT;
             InitializeModels();
-
+#if UNIX_LIKE
             if (IsUnixLike())
             {
                 m_bUnix = true;
@@ -1986,7 +2196,7 @@ namespace RFExplorerCommunicator
                     ReportLog("Running on a MacOS computer");
                 }
             }
-
+#endif
             StoreSweep = true;
 
             CurrentAmplitudeUnit = eAmplitudeUnit.dBm;
@@ -2006,22 +2216,13 @@ namespace RFExplorerCommunicator
             m_bRunReceiveThread = true;
             ThreadStart threadDelegate = new ThreadStart(ReceiveThreadfunc);
             m_ReceiveThread = new Thread(threadDelegate);
+            m_ReceiveThread.IsBackground = true;
             m_ReceiveThread.Start();
 
             ReportLog("RFECommunicator library started.");
 
-            for (int nInd = 0; nInd < m_arrFLASH.Length; nInd++)
-            {
-                m_arrFLASH[nInd] = new RFEMemoryBlock();
-                m_arrFLASH[nInd].Address = (UInt32)(nInd * RFEMemoryBlock.MAX_BLOCK_SIZE);
-            }
-            for (int nInd = 0; nInd < m_arrRAM1.Length; nInd++)
-            {
-                m_arrRAM1[nInd] = new RFEMemoryBlock();
-                m_arrRAM1[nInd].Address = (UInt32)(nInd * RFEMemoryBlock.MAX_BLOCK_SIZE);
-                m_arrRAM2[nInd] = new RFEMemoryBlock();
-                m_arrRAM2[nInd].Address = (UInt32)(nInd * RFEMemoryBlock.MAX_BLOCK_SIZE);
-            }
+            CleanMemoryBlockBuffer(true);
+
             try
             {
                 m_serialPortObj = new SerialPort();
@@ -2037,12 +2238,17 @@ namespace RFExplorerCommunicator
         /// </summary>
         public void Close()
         {
-            if (m_bRunReceiveThread)
+            try
             {
-                m_bRunReceiveThread = false;
-                Thread.Sleep(1000);
-                m_ReceiveThread.Abort();
+                if (m_bRunReceiveThread)
+                {
+                    m_bRunReceiveThread = false;
+                    Thread.Sleep(1000);
+                    if (m_ReceiveThread != null && m_ReceiveThread.IsAlive)
+                        m_ReceiveThread.Abort();
+                }
             }
+            catch { }
             ClosePort(m_bAutoConfigure); //send close commands only for autoconfigure mode
         }
 
@@ -2130,8 +2336,6 @@ namespace RFExplorerCommunicator
 
             while (m_bRunReceiveThread)
             {
-
-
                 string strReceived = "";
                 while (m_bPortConnected && m_bRunReceiveThread)
                 {
@@ -2204,6 +2408,7 @@ namespace RFExplorerCommunicator
                         }
                         strReceived = "";
                     }
+
                     if (strReceived.Length > 0)
                     {
                         if (strReceived[0] == '#')
@@ -2263,8 +2468,16 @@ namespace RFExplorerCommunicator
                                         m_arrReceivedData.Enqueue(objNewConfiguration);
                                         Monitor.Exit(m_arrReceivedData);
                                         //When received new configuration, partialSweep must be reinitialized
-                                        m_objPartialSweep.SetNewConfiguration(objCurrentConfiguration.fStartMHZ, objCurrentConfiguration.fStepMHZ, (ushort)(objCurrentConfiguration.FreqSpectrumSteps + 1));
-                                        m_objMaxHoldPartialSweep.SetNewConfiguration(objCurrentConfiguration.fStartMHZ, objCurrentConfiguration.fStepMHZ, (ushort)(objCurrentConfiguration.FreqSpectrumSteps + 1));
+                                        try
+                                        {
+                                            Monitor.Enter(m_objPartialSweep);
+                                            m_objPartialSweep.SetNewConfiguration(objCurrentConfiguration.fStartMHZ, objCurrentConfiguration.fStepMHZ, (ushort)(objCurrentConfiguration.FreqSpectrumSteps + 1));
+                                            m_objMaxHoldPartialSweep.SetNewConfiguration(objCurrentConfiguration.fStartMHZ, objCurrentConfiguration.fStepMHZ, (ushort)(objCurrentConfiguration.FreqSpectrumSteps + 1));
+                                        }
+                                        finally
+                                        {
+                                            Monitor.Exit(m_objPartialSweep);
+                                        }
                                     }
                                 }
                                 else
@@ -2411,8 +2624,14 @@ namespace RFExplorerCommunicator
                                 }
 
                                 bool bLengthOK = (strReceived.Length >= (nSizeChars + nReceivedLength + 2));
+                                bool bFullStringOK = false;
+                                if (bLengthOK && (strReceived.Substring(nSizeChars + nReceivedLength, 2) == "\r\n"))
+                                {
+                                    bFullStringOK = true;
+                                }
+
                                 bool bEEOT = false;
-                                if (!bLengthOK)
+                                if (!bLengthOK || (bLengthOK && !bFullStringOK))
                                 {
                                     //Check if not all bytes were received but EEOT is detected.
                                     if (strReceived.Contains(_EEOT))
@@ -2427,11 +2646,6 @@ namespace RFExplorerCommunicator
                                         //If EEOT detected, remove from received string so we ignore the partially received data
                                         strReceived = strReceived.Substring(strReceived.IndexOf(_EEOT) + _EEOT.Length);
                                     }
-                                }
-                                bool bFullStringOK = false;
-                                if (bLengthOK && (strReceived.Substring(nSizeChars + nReceivedLength, 2) == "\r\n"))
-                                {
-                                    bFullStringOK = true;
                                 }
 
                                 if (m_bDebugTraces)
@@ -2461,8 +2675,8 @@ namespace RFExplorerCommunicator
                                             RFESweepData objSweep = new RFESweepData(fConfigurationStartMHZ, objCurrentConfiguration.fStepMHZ, nSweepDataPoints);
                                             //If using LNA or Attenuator, add required adjust to compensate from offset value sent from device
                                             Int32 nInputStageOffset = 0;
-
-                                            if ((m_eInputStage != eInputStage.Direct) && IsAnalyzerEmbeddedCal() && (!IsMWSUB3G))
+                                            //IoT module calculate this offset internally, this avoid add offset twice if is IoT (MWSUB3G), same as 2.4G+
+                                            if ((m_eInputStage != eInputStage.Direct) && IsAnalyzerEmbeddedCal() && (!IsMWSUB3G) && (ActiveModel != eModel.MODEL_2400_PLUS))
                                                 nInputStageOffset = Convert.ToInt32(InputStageAttenuationDB);
 
                                             if (objSweep.ProcessReceivedString(sNewLine, (objCurrentConfiguration.fOffset_dB + nInputStageOffset), m_bUseByteBLOB, m_bUseStringBLOB))
@@ -2530,6 +2744,7 @@ namespace RFExplorerCommunicator
                                                             if (m_bTrackingAllowed)
                                                             {
                                                                 m_objRFEGen.SendCommand_TrackingDataPoint(m_nRFGenTracking_CurrentSweepDataPoint);
+                                                                Thread.Sleep(20);   //increase time from 10 to 20ms to avoid PLL delay of the gen+. This affected the amplitude of random points in sweep tracking
                                                                 SendCommand_TrackingDataPoint(m_nRFGenTracking_CurrentSweepDataPoint);
                                                             }
                                                             else
@@ -2607,7 +2822,7 @@ namespace RFExplorerCommunicator
                                         Monitor.Exit(m_arrReceivedData);
                                     }
                                 }
-                                else if (bLengthOK)
+                                else if (bLengthOK && !bEEOT)
                                 {
                                     //So we are here because the string doesn't end with the expected chars, but has the right length. 
                                     //The most likely cause is a truncated string was received, and some chars are from next string, not this one
@@ -2621,7 +2836,6 @@ namespace RFExplorerCommunicator
                                 else if (!bEEOT)
                                 {
                                     //Here we are in the case that we have received a partial sweep, the end of received string is not \r\n
-                                    m_bPartialSweepReceived = false;
                                     if (nReceivedLength <= MAX_SPECTRUM_STEPS)
                                     {
                                         string sNewPartialLine = "$S" + strReceived.Substring(nSizeChars, strReceived.Length - nSizeChars);
@@ -2636,12 +2850,24 @@ namespace RFExplorerCommunicator
 
                                             if ((m_eInputStage != eInputStage.Direct) && IsAnalyzerEmbeddedCal() && (!IsMWSUB3G))
                                                 nInputStageOffset = Convert.ToInt32(InputStageAttenuationDB);
-                                            m_objPartialSweep.AvailableDataPoints = (ushort)(sNewPartialLine.Length - 2);
-
-                                            if (m_objPartialSweep.ProcessReceivedPartialString(sNewPartialLine, (objCurrentConfiguration.fOffset_dB + nInputStageOffset), m_objPartialSweep.AvailableDataPoints))
+                                            try
                                             {
-                                                m_objMaxHoldPartialSweep.AddMaxHoldData(m_objPartialSweep);
-                                                m_bPartialSweepReceived = true;
+                                                Monitor.Enter(m_objPartialSweep);
+                                                m_objPartialSweep.AvailableDataPoints = (ushort)(sNewPartialLine.Length - 2);
+
+                                                if (m_objPartialSweep.ProcessReceivedPartialString(sNewPartialLine, (objCurrentConfiguration.fOffset_dB + nInputStageOffset), m_objPartialSweep.AvailableDataPoints))
+                                                {
+                                                    string sAddMaxHoldDataLog = string.Empty;
+                                                    m_objMaxHoldPartialSweep.AddMaxHoldData(m_objPartialSweep, out sAddMaxHoldDataLog);
+                                                    if (!string.IsNullOrEmpty(sAddMaxHoldDataLog))
+                                                        ReportLog(sAddMaxHoldDataLog, true);
+
+                                                }
+                                                m_bPartialSweepReceived = m_objPartialSweep.AvailableDataPoints > 0;
+                                            }
+                                            finally
+                                            {
+                                                Monitor.Exit(m_objPartialSweep);
                                             }
                                         }
                                     }
@@ -2900,88 +3126,56 @@ namespace RFExplorerCommunicator
                                 //it is an spectrum analyzer
 
                                 m_eMode = objConfiguration.eMode;
-                                //spectrum analyzer
-                                if (m_eMode != RFECommunicator.eMode.MODE_SNIFFER)
+                                m_bExpansionBoardActive = objConfiguration.bExpansionBoardActive;
+                                if (m_bExpansionBoardActive)
                                 {
-                                    if ((Math.Abs(StartFrequencyMHZ - objConfiguration.fStartMHZ) >= 0.001) || (Math.Abs(StepFrequencyMHZ - objConfiguration.fStepMHZ) >= 0.000001))
-                                    {
-                                        StartFrequencyMHZ = objConfiguration.fStartMHZ;
-                                        StepFrequencyMHZ = objConfiguration.fStepMHZ;
-                                        ReportLog("New Freq range - buffer cleared.");
-                                    }
+                                    m_eActiveModel = m_eExpansionBoardModel;
+                                }
+                                else
+                                {
+                                    m_eActiveModel = m_eMainBoardModel;
+                                }
+
+                                //spectrum analyzer
+                                if ((Math.Abs(StartFrequencyMHZ - objConfiguration.fStartMHZ) >= 0.001) || (Math.Abs(StepFrequencyMHZ - objConfiguration.fStepMHZ) >= 0.000001))
+                                {
+                                    StartFrequencyMHZ = objConfiguration.fStartMHZ;
+                                    StepFrequencyMHZ = objConfiguration.fStepMHZ;
+                                    ReportLog("New Freq range - buffer cleared.");
+                                }
+
+                                if (!IsIoT)
+                                {
                                     AmplitudeTopDBM = objConfiguration.fAmplitudeTopDBM;
                                     AmplitudeBottomDBM = objConfiguration.fAmplitudeBottomDBM;
-                                    FreqSpectrumSteps = objConfiguration.FreqSpectrumSteps;
-                                }
-                                m_bExpansionBoardActive = objConfiguration.bExpansionBoardActive;
-                                if (m_bExpansionBoardActive)
-                                {
-                                    m_eActiveModel = m_eExpansionBoardModel;
-                                }
-                                else
-                                {
-                                    m_eActiveModel = m_eMainBoardModel;
                                 }
 
-                                m_eMode = objConfiguration.eMode;
-                                m_bExpansionBoardActive = objConfiguration.bExpansionBoardActive;
-                                if (m_bExpansionBoardActive)
+                                UpdateCalculatorMode(objConfiguration.eCalculator, true);
+
+                                MinFreqMHZ = objConfiguration.fMinFreqMHZ;
+                                MaxFreqMHZ = objConfiguration.fMaxFreqMHZ;
+                                MaxSpanMHZ = objConfiguration.fMaxSpanMHZ;
+
+                                m_fOffset_dB = objConfiguration.fOffset_dB;
+                                m_fRBWKHZ = objConfiguration.fRBWKHZ;
+                                FreqSpectrumSteps = objConfiguration.FreqSpectrumSteps;
+
+                                if ((m_eActiveModel == eModel.MODEL_2400) || (m_eActiveModel == eModel.MODEL_6G))
                                 {
-                                    m_eActiveModel = m_eExpansionBoardModel;
+                                    MinSpanMHZ = 2.0;
                                 }
                                 else
                                 {
-                                    m_eActiveModel = m_eMainBoardModel;
-                                }
-
-                                if (objConfiguration.eMode == eMode.MODE_SNIFFER)
-                                {
-                                    m_nBaudrate = objConfiguration.nBaudrate;
-                                    m_fThresholdDBM = objConfiguration.fThresholdDBM;
-                                    m_fRefFrequencyMHZ = objConfiguration.fStartMHZ;
-                                }
-                                else
-                                {
-                                    //spectrum analyzer
-                                    if ((Math.Abs(StartFrequencyMHZ - objConfiguration.fStartMHZ) >= 0.001) || (Math.Abs(StepFrequencyMHZ - objConfiguration.fStepMHZ) >= 0.000001))
+                                    if (FreqSpectrumSteps <= RFECommunicator.RFE_MIN_SWEEP_POINTS)  //Keep using 112 for backward visual compatibility
                                     {
-                                        StartFrequencyMHZ = objConfiguration.fStartMHZ;
-                                        StepFrequencyMHZ = objConfiguration.fStepMHZ;
-                                        ReportLog("New Freq range - buffer cleared.");
-                                    }
-
-                                    if (!IsMWSUB3G)
-                                    {
-                                        AmplitudeTopDBM = objConfiguration.fAmplitudeTopDBM;
-                                        AmplitudeBottomDBM = objConfiguration.fAmplitudeBottomDBM;
-                                    }
-
-                                    UpdateCalculatorMode(objConfiguration.eCalculator, true);
-
-                                    MinFreqMHZ = objConfiguration.fMinFreqMHZ;
-                                    MaxFreqMHZ = objConfiguration.fMaxFreqMHZ;
-                                    MaxSpanMHZ = objConfiguration.fMaxSpanMHZ;
-
-                                    m_fOffset_dB = objConfiguration.fOffset_dB;
-                                    m_fRBWKHZ = objConfiguration.fRBWKHZ; //TODO T0028: may be needed in sniffer mode too
-                                    FreqSpectrumSteps = objConfiguration.FreqSpectrumSteps;
-
-                                    if ((m_eActiveModel == eModel.MODEL_2400) || (m_eActiveModel == eModel.MODEL_6G))
-                                    {
-                                        MinSpanMHZ = 2.0;
+                                        MinSpanMHZ = 0.112;
                                     }
                                     else
                                     {
-                                        if (FreqSpectrumSteps <= RFECommunicator.RFE_MIN_SWEEP_POINTS)  //Keep using 112 for backward visual compatibility
-                                        {
-                                            MinSpanMHZ = 0.112;
-                                        }
-                                        else
-                                        {
-                                            MinSpanMHZ = 0.001 * FreqSpectrumSteps;
-                                        }
+                                        MinSpanMHZ = 0.001 * FreqSpectrumSteps;
                                     }
                                 }
+
                                 m_LastCaptureTime = new DateTime(2000, 1, 1);
                                 m_nAverageSweepSpeedIterator = 0;
                                 m_spanAverageSpeedAcumulator = TimeSpan.Zero;
@@ -3053,7 +3247,7 @@ namespace RFExplorerCommunicator
                                     m_sSweepSpeed = objSweep.TotalDataPoints + "pts";
                                     m_sSweepInfoText = m_sSweepDate + " - " + m_sSweepSpeed;
                                     TimeSpan objSpan = objSweep.CaptureTime - m_LastCaptureTime;
-                                    if (objSpan.TotalSeconds < 60)  //TODO: Adjust this span time depending on current sweep point resolution, currently the sweep that takes logest to receive is 29.3 secs for 4096 points
+                                    if (objSpan.TotalSeconds < 60)
                                     {
                                         //If time between captures is less than 60 seconds, we can assume we are getting realtime data
                                         //and therefore can provide average sweep/seconds information, otherwise we were in hold or something
@@ -3164,6 +3358,11 @@ namespace RFExplorerCommunicator
                                 m_sSerialNumber = sLine.Substring(3, 16);
                                 ReportLog("Device serial number: " + SerialNumber);
                             }
+                            else if ((sLine.Length > 16) && (sLine.StartsWith("#Se")))
+                            {
+                                m_sExpansionSerialNumber = sLine.Substring(3, 16);
+                                ReportLog("Expansion serial number: " + ExpansionSerialNumber);
+                            }
                             else if ((sLine.Length > 2) && ((sLine.StartsWith("$q")) || (sLine.StartsWith("$Q"))))
                             {
                                 //calibration data
@@ -3185,7 +3384,7 @@ namespace RFExplorerCommunicator
                                 }
                                 else
                                 {
-                                    if (m_eActiveModel == eModel.MODEL_6G || m_eActiveModel == eModel.MODEL_WSUB1G || m_eActiveModel == eModel.MODEL_WSUB1G_PLUS || IsMWSUB3G)
+                                    if (m_eActiveModel == eModel.MODEL_6G || m_eActiveModel == eModel.MODEL_WSUB1G || MainBoardModel == eModel.MODEL_WSUB1G_PLUS || IsMWSUB3G)
                                     {
                                         string sData = "Embedded calibration Spectrum Analyzer data received:";
                                         bool bAllZero = true;
@@ -3281,6 +3480,10 @@ namespace RFExplorerCommunicator
                                 m_bExpansionBoardActive = (m_eExpansionBoardModel == eModel.MODEL_RFGEN_EXPANSION);
                                 m_sRFExplorerFirmware = (sLine.Substring(14, 5));
 
+                                m_sRFExplorerFirmware = (sLine.Substring(14, 5));
+
+                                OnReceivedDeviceModel(new EventArgs());
+
 
                                 OnReceivedDeviceModel(new EventArgs());
                             }
@@ -3303,10 +3506,20 @@ namespace RFExplorerCommunicator
                             else if ((sLine.Length > 2) && sLine.StartsWith("#a"))
                             {
                                 eInputStage ePreviousInputSatge = m_eInputStage;
-                                m_eInputStage = (eInputStage)Convert.ToByte(sLine[2] - 0x30);
-                                ReportLog("Input stage changed to " + m_eInputStage.ToString());
-                                if (m_eInputStage != ePreviousInputSatge)
-                                    OnReceivedDeviceInputStage(new EventArgs());
+                                byte nNewStage = Convert.ToByte(sLine[2] - 0x30);
+                                if (nNewStage < Convert.ToByte(eInputStage.Attenuator_60dB))
+                                {
+                                    m_eInputStage = (eInputStage)nNewStage;
+                                    if (m_eInputStage == eInputStage.LNA_25dB && m_eActiveModel == eModel.MODEL_2400_PLUS)
+                                        m_eInputStage = eInputStage.LNA_12dB; //2.4G+ has 12dB LNA, not 25dB
+                                    ReportLog("Input stage changed to " + m_eInputStage.ToString());
+                                    if (m_eInputStage != ePreviousInputSatge)
+                                        OnReceivedDeviceInputStage(new EventArgs());
+                                }
+                                else
+                                {
+                                    ReportLog("ERROR: Received invalid input stage " + nNewStage);
+                                }
                             }
                             else if ((sLine.Length > 3) && sLine.StartsWith("#C+"))
                             {
@@ -3384,10 +3597,14 @@ namespace RFExplorerCommunicator
 
                             if (bWrongFormat)
                             {
-                                ReportLog("Received unexpected data from RFExplorer device:" + sLine);
-                                ReportLog("Please update your RF Explorer to a recent firmware version and");
-                                ReportLog("make sure you are using the latest version of RF Explorer software.");
-                                ReportLog("Visit http://www.rf-explorer/download for latest firmware updates.");
+                                if (!m_bWrongDataReportDisplayed)
+                                {
+                                    m_bWrongDataReportDisplayed = true;
+                                    ReportLog("Received unexpected data from RFExplorer device:" + sLine);
+                                    ReportLog("Please update your RF Explorer to a recent firmware version and");
+                                    ReportLog("make sure you are using the latest version of RF Explorer software.");
+                                    ReportLog("Visit http://www.rf-explorer/download for latest firmware updates.");
+                                }
 
                                 OnWrongFormatData(new EventArgs());
                             }
@@ -3402,6 +3619,26 @@ namespace RFExplorerCommunicator
             }
 
             return bDraw;
+        }
+
+        /// <summary>
+        /// Clean memory buffer to receive data from device
+        /// </summary>
+        /// <param name="bCleanRAM">true if RAM data will be cleaned too, false to clean Flash data </param>
+        public void CleanMemoryBlockBuffer(bool bCleanRAM = false)
+        {
+            for (int nInd = 0; nInd < m_arrFLASH.Length; nInd++)
+            {
+                m_arrFLASH[nInd] = new RFEMemoryBlock();
+                m_arrFLASH[nInd].Address = (UInt32)(nInd * RFEMemoryBlock.MAX_BLOCK_SIZE);
+            }
+            for (int nInd = 0; nInd < m_arrRAM1.Length && bCleanRAM; nInd++)
+            {
+                m_arrRAM1[nInd] = new RFEMemoryBlock();
+                m_arrRAM1[nInd].Address = (UInt32)(nInd * RFEMemoryBlock.MAX_BLOCK_SIZE);
+                m_arrRAM2[nInd] = new RFEMemoryBlock();
+                m_arrRAM2[nInd].Address = (UInt32)(nInd * RFEMemoryBlock.MAX_BLOCK_SIZE);
+            }
         }
 
         private void SwitchDeviceToNormalResolution()
@@ -3687,10 +3924,11 @@ namespace RFExplorerCommunicator
 
         /// <summary>
         /// Request RF Explorer device to send configuration data and start sending feed back
+        /// If bOnlyConfig is true then will request '2' optional to request config only, no sweep start
         /// </summary>
-        public void SendCommand_RequestConfigData()
+        public void SendCommand_RequestConfigData(bool bOnlyConfig = false)
         {
-            SendCommand("C0");
+            SendCommand("C0" + (bOnlyConfig ? "2" : ""));
         }
 
         /// <summary>
@@ -3808,6 +4046,41 @@ namespace RFExplorerCommunicator
         }
 
         /// <summary>
+        /// Set RF Explorer Spectrum Analyzer device working in SA mode
+        /// </summary>
+        public void SendCommand_SpectrumAnalyzerMode()
+        {
+            SendCommand("CW0");
+        }
+
+        /// <summary>
+        /// Set RF Explorer Spectrum Analyzer device working in Wifi Analyzer mode at 2.4GHz
+        /// </summary>
+        public void SendCommand_WifiAnalyzerMode2_4GHZ()
+        {
+            SendCommand("CW1");
+        }
+
+        /// <summary>
+        /// Set RF Explorer Spectrum Analyzer device working in Wifi Analyzer mode at 5GHz
+        /// </summary>
+        public void SendCommand_WifiAnalyzerMode5GHZ()
+        {
+            SendCommand("CW2");
+        }
+
+        /// <summary>
+        /// Set RF Explorer Spectrum Analyzer device working in Wifi Analyzer mode depending on its WiFi band 
+        /// </summary>
+        public void SendCommand_WifiAnalyzer()
+        {
+            if (IsWifi5GHz)
+                SendCommand_WifiAnalyzerMode5GHZ();
+            else
+                SendCommand_WifiAnalyzerMode2_4GHZ();
+        }
+
+        /// <summary>
         /// Set a new amplitude offset in dB. The firmware v1.16 and older does not return configuration so a #C0 is required 
         /// </summary>
         /// <param name="nbOffsetDB"></param>
@@ -3835,7 +4108,6 @@ namespace RFExplorerCommunicator
         /// <param name="sData">unformatted command from http://code.google.com/p/rfexplorer/wiki/RFExplorerRS232Interface </param>
         public void SendCommand(string sData)
         {
-
 #if DEBUG
             if (sData.Contains("C3-K:"))
             {
@@ -3928,7 +4200,6 @@ namespace RFExplorerCommunicator
                 return SweepData.SaveFile(sFilename, FullModelText, ConfigurationText, m_FileAmplitudeCalibration);
             else
                 return SweepData.SaveFile(sFilename, FullModelText, ConfigurationText, null);
-
         }
 
         /// <summary>
@@ -4044,8 +4315,8 @@ namespace RFExplorerCommunicator
                     StepFrequencyMHZ = SweepData.GetData(0).StepFrequencyMHZ;
                     FreqSpectrumSteps = (UInt16)(SweepData.GetData(0).TotalDataPoints - 1);
 
-                    //TODO: store mode in data file to restore actual mode, not based on number of samples
-                    if (SweepData.GetData(0).TotalDataPoints == 13)
+                    //Store mode in data file to restore actual mode, not based on number of samples
+                    if ((SweepData.GetData(0).TotalDataPoints == 13) || (SweepData.GetData(0).TotalDataPoints == 28))
                     {
                         m_eMode = RFECommunicator.eMode.MODE_WIFI_ANALYZER;
                     }
@@ -4095,6 +4366,117 @@ namespace RFExplorerCommunicator
             ScreenIndex = 0;
         }
 
+
+        #endregion
+
+        #region Partial Sweep
+        volatile bool m_bPartialSweepReceived = false;
+        /// <summary>
+        /// True when a partial sweep has been received, false when is a complete sweep
+        /// </summary>
+        public bool PartialSweepReceived
+        {
+            get
+            {
+                return m_bPartialSweepReceived;
+            }
+        }
+
+        RFESweepDataPartial m_objPartialSweep;
+        /// <summary>
+        /// Return a copy of m_objPartialSweep (blocked previously) that stores sweep points of a sweep to draw until the full sweep has arrived from the device
+        /// Note: Call this property as few times as possible due to not create several RFESweepDataPartial object to not slow down behaviour
+        /// </summary>                                 
+        public RFESweepDataPartial PartialSweep
+        {
+            get
+            {
+                RFESweepDataPartial objReturnPartialSweep = null;
+                try
+                {
+                    Monitor.Enter(m_objPartialSweep);
+                    objReturnPartialSweep = m_objPartialSweep.DuplicatePartial();
+                }
+                finally
+                {
+                    Monitor.Exit(m_objPartialSweep);
+                }
+                return objReturnPartialSweep;
+            }
+        }
+
+        RFESweepDataPartial m_objMaxHoldPartialSweep;
+        /// <summary>
+        /// Return a copy of m_objMaxHoldPartialSweep (blocked previously) that stores sweep points of a max hold sweep to draw until the full sweep has arrived from the device
+        /// Note: Call this property as few times as possible due to not create several RFESweepDataPartial object to not slow down behaviour
+        /// </summary>                                  
+        public RFESweepDataPartial MaxHoldPartialSweep
+        {
+            get
+            {
+                RFESweepDataPartial objReturnMaxHoldPartialSweep = null;
+                try
+                {
+                    Monitor.Enter(m_objPartialSweep);
+                    objReturnMaxHoldPartialSweep = m_objMaxHoldPartialSweep.DuplicatePartial();
+                }
+                finally
+                {
+                    Monitor.Exit(m_objPartialSweep);
+                }
+                return objReturnMaxHoldPartialSweep;
+            }
+        }
+
+        /// <summary>
+        /// Return true if partial sweep is not null and has data
+        /// </summary>
+        public bool IsPartialSweepAvailable
+        {
+            get
+            {
+                bool bAvailable = false;
+                try
+                {
+                    Monitor.Enter(m_objPartialSweep);
+                    bAvailable = m_objPartialSweep != null && m_objPartialSweep.AvailableDataPoints > 0;
+                }
+                finally
+                {
+                    Monitor.Exit(m_objPartialSweep);
+                }
+                return bAvailable;
+            }
+        }
+
+        /// <summary>
+        /// Get partial sweep data and max hold partial data, both synchronized
+        /// Return objMaxHoldPartialSweep = null if bGetMaxHold = false
+        /// </summary>
+        /// <param name="objPartialSweeep">Partial sweep data</param>
+        /// <param name="objMaxHoldPartialSweep">Max Hold Partial sweep data</param>
+        /// <param name="bGetMaxHold">True to get max hold partial sweep data</param>
+        public void GetPartialSweepData(out RFESweepDataPartial objPartialSweeep, out RFESweepDataPartial objMaxHoldPartialSweep, bool bGetMaxHold)
+        {
+            objPartialSweeep = null;
+            objMaxHoldPartialSweep = null;
+            try
+            {
+                Monitor.Enter(m_objPartialSweep);
+                //Used property to get duplicated sweep
+                objPartialSweeep = PartialSweep;
+                if (bGetMaxHold)
+                    objMaxHoldPartialSweep = MaxHoldPartialSweep;
+            }
+            catch (Exception objExc)
+            {
+                ReportLog("EXCEPTION: GetPartialSweepData() - " + objExc.ToString());
+            }
+            finally
+            {
+                Monitor.Exit(m_objPartialSweep);
+            }
+        }
 
         #endregion
 
@@ -4463,6 +4845,7 @@ namespace RFExplorerCommunicator
 
             for (int nInd = 0; nInd < m_arrConnectedPorts.Length; nInd++)
             {
+                //this is required to fix a problem in Silabs Universal driver 10.x
                 string[] arrText = m_arrConnectedPorts[nInd].Split('\0');
                 m_arrConnectedPorts[nInd] = arrText[0];
             }
@@ -4497,7 +4880,6 @@ namespace RFExplorerCommunicator
             return false;
         }
 
-
         /// <summary>
         /// call stty Unix command to setup baudrate. This is the best way for Mono to support custom baudrates not supported by libraries.
         /// </summary>
@@ -4525,16 +4907,17 @@ namespace RFExplorerCommunicator
             }
         }
 
-
         /// <summary>
         /// Connect serial port and start init sequence if AutoConfigure property is set
         /// </summary>
-        /// <param name="PortName">serial port name, can take any form accepted by OS</param>
+        /// <param name="sPortName">serial port name, can take any form accepted by OS</param>
         /// <param name="nBaudRate">usually 500000 or 2400, can be -1 to not define it and take default setting</param>
         /// <param name="bUnix">Default to false. If enabled, will do a Unix call to setup baudrate, required on Linux and Raspbian system, not required in MacOS</param>
         /// <param name="bForceBaudrate">Default to false. If enabled, will do a Unix call to setup baudrate, required on Linux and Raspbian system required when using -1 in baudrate</param>
-        public void ConnectPort(string PortName, int nBaudRate, bool bUnix = false, bool bForceBaudrate = false)
+        public void ConnectPort(string sPortName, int nBaudRate, bool bUnix = false, bool bForceBaudrate = false)
         {
+            if (String.IsNullOrEmpty(sPortName))
+                return; //Avoid early calls when port name is not yet available
 
             m_bPortConnected = false;
             try
@@ -4545,7 +4928,7 @@ namespace RFExplorerCommunicator
                 m_serialPortObj.DataBits = 8;
                 m_serialPortObj.StopBits = StopBits.One;
                 m_serialPortObj.Parity = Parity.None;
-                m_serialPortObj.PortName = PortName;
+                m_serialPortObj.PortName = sPortName;
                 m_serialPortObj.ReadTimeout = 100;
                 m_serialPortObj.WriteBufferSize = 1024;
                 m_serialPortObj.ReadBufferSize = 8192;
@@ -4584,7 +4967,7 @@ namespace RFExplorerCommunicator
             if (m_bPortConnected && ((nBaudRate > 115200) || bForceBaudrate) && bUnix)
             {
                 //For unix we now force to value we want in the actual OS
-                ForceSetBaudRate(PortName, nBaudRate);
+                ForceSetBaudRate(sPortName, nBaudRate);
                 OnPortConnected(new EventArgs());
                 Thread.Sleep(500);
                 SendCommand_RequestConfigData();
@@ -4594,6 +4977,7 @@ namespace RFExplorerCommunicator
                     ReportLog("Used Unix stty to setup baudrate to " + nBaudRate);
                 }
             }
+            OnInitDevice(new EventArgs());
         }
 
         /// <summary>
@@ -4777,6 +5161,7 @@ namespace RFExplorerCommunicator
             }
             else
             {
+#if UNIX_LIKE
                 if (m_bUnix)
                 {
                     if (IsMacOSPlatform())
@@ -4789,6 +5174,7 @@ namespace RFExplorerCommunicator
                     GetValidCOMPorts_Wine();
                 }
                 else
+#endif
                 {
                     GetValidCOMPorts_Windows();
                 }
@@ -5067,6 +5453,20 @@ namespace RFExplorerCommunicator
         #endregion
 
         #region OS Methods
+
+        /// <summary>
+        /// Code to determine specific OS version
+        /// </summary>
+        /// <returns> Version of OS that the system has based on Build mode</returns>
+        public static string GetOSVersionString()
+        {
+#if !UNIX_LIKE
+            return " - " + GetWinVersionString();
+#else
+            return (IsMacOSPlatform() ? (" - " + GetMacOSReleaseVersionString()) : "");
+#endif
+
+        }
 #if !UNIX_LIKE
         /// <summary>
         /// Code to determine specific version of Windows
@@ -5126,7 +5526,7 @@ namespace RFExplorerCommunicator
         }
 #else
         /// <summary>
-        /// Code to determine specific release version of MacOS
+        /// Code to determine specific release version of macOS based on Darwin version
         /// </summary>
         /// <returns> Version of MacOS that the system has </returns>
         public static string GetMacOSReleaseVersionString()
@@ -5195,6 +5595,9 @@ namespace RFExplorerCommunicator
                     break;
                 case 19:
                     osVersion = "macOS Catalina v10.15";
+                    break;
+                case 20:
+                    osVersion = "macOS Big Sur v11";
                     break;
             }
             return osVersion;
@@ -5546,6 +5949,39 @@ namespace RFExplorerCommunicator
             if (PortClosedEvent != null)
             {
                 PortClosedEvent(this, e);
+            }
+        }
+
+        public event EventHandler InitDeviceEvent;
+        private void OnInitDevice(EventArgs eventArgs)
+        {
+            if (InitDeviceEvent != null)
+            {
+                InitDeviceEvent(this, eventArgs);
+            }
+        }
+        #endregion
+
+        #region Sweep Methods
+        /// <summary>
+        /// Clear sweep data, sweep partial data and max hold partial data
+        /// </summary>
+        public void CleanSweepData()
+        {
+            m_SweepDataContainer.CleanAll();
+            //Clean Sweep Data Partial
+            m_bPartialSweepReceived = false;
+            try
+            {
+                Monitor.Enter(m_objPartialSweep);
+                m_objPartialSweep.AvailableDataPoints = 0;
+                m_objPartialSweep.CleanSweepData((ushort)(m_nFreqSpectrumSteps + 1));
+                m_objMaxHoldPartialSweep.AvailableDataPoints = 0;
+                m_objMaxHoldPartialSweep.CleanSweepData((ushort)(m_nFreqSpectrumSteps + 1));
+            }
+            finally
+            {
+                Monitor.Exit(m_objPartialSweep);
             }
         }
         #endregion

@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for .NET - A Spectrum Analyzer for everyone!
-//Copyright © 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright © 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -136,8 +136,8 @@ namespace RFE_ScanRange
                    "    /p: Connect to a USB port such as COM3 or /dev/ttyUSB0" + Environment.NewLine +
                    "        Using AUTO assumes only RF Explorer device connected to USB port" + Environment.NewLine +
                    "    NOTE: One of / IOT or / p parameters are required" + Environment.NewLine +
-                   "    StartRangeMHZ: Is a number in range 15-2700MHz to start scan sweep" + Environment.NewLine +
-                   "    StopRangeMHZ: Is a number in range 15-2700MHz to stop scan sweep" + Environment.NewLine +
+                   "    StartRangeMHZ: Is Start Frequency in MHz number to start scan sweep" + Environment.NewLine +
+                   "    StopRangeMHZ: Is Stop Frequency in MHz number to stop scan sweep" + Environment.NewLine +
                    "    NOTE: Current limit for full range scanning is up to 1000MHz" + Environment.NewLine +
                    "          Some models and configurations may have a reduced range" + Environment.NewLine +
                    Environment.NewLine +

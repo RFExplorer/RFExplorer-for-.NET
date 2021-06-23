@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -862,7 +862,7 @@ namespace RFExplorerCommunicator
         /// Decode HT12 protocol. Data bit: 0 = bit0, 1 = bit1, Sync: 2 = OK and 3 = FAIL 
         /// </summary>
         /// <returns>Array with decoded sequence. 0 = bit 0, 1 = bit 1, 2 = OK and 3 = FAIL</returns>
-        public byte[] DecodeHT12() //TODO T0028: new ht12 function
+        public byte[] DecodeHT12()
         {
             List<byte> listDecodedBits = new List<byte>();
             ePulseWidth[] arrTempDecoderBit = null;
@@ -875,7 +875,7 @@ namespace RFExplorerCommunicator
 
             if (nArrayLength > 0)
             {
-                if (arrTempDecoderBit[0].Equals(ePulseWidth.NARROW_1) && nArrayLength == 25) //TODO T0028: check this number 25
+                if (arrTempDecoderBit[0].Equals(ePulseWidth.NARROW_1) && nArrayLength == 25)
                     listDecodedBits.Add((byte)eDecodedBit.OK);
                 else
                     listDecodedBits.Add((byte)eDecodedBit.FAIL);
@@ -983,7 +983,7 @@ namespace RFExplorerCommunicator
             {
                 if (GetDecodedProtocol() == eProtocol.EXTERNAL)
                 {
-                    sFilename = Environment.GetEnvironmentVariable("TEMP") + "\\" + sFilename;
+                    sFilename = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), sFilename);
                 }
                 m_sFilenameCSV = sFilename;
 

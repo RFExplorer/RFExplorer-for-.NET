@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -214,6 +214,7 @@ namespace RFExplorerCommunicator
                             foreach (string sTestCOMPort in m_objRFE.ValidCP2101Ports)
                             {
                                 string sTestCOMPortName = "";
+#if UNIX_LIKE
                                 if (RFECommunicator.IsMacOSPlatform())
                                 {
                                     sTestCOMPortName = sTestCOMPort.Replace(MAC_PORT_PREFIX, USB_PREFIX);
@@ -221,7 +222,8 @@ namespace RFExplorerCommunicator
                                         sTestCOMPortName += "0";
                                 }
                                 else
-                                    sTestCOMPortName = sTestCOMPort.Replace(LINUX_PORT_PREFIX, "");
+#endif
+                                    sTestCOMPortName = sTestCOMPort.Replace(LINUX_PORT_PREFIX, "");  //Linux prefix is removed if exist to compare correctly with selectem item
 
                                 if (sTestCOMPortName == m_comboCOMPort.SelectedValue.ToString())
                                 {
@@ -232,6 +234,7 @@ namespace RFExplorerCommunicator
                         }
                     }
                 }
+#if UNIX_LIKE
                 if (!String.IsNullOrEmpty(sCOMPort))
                 {
                     if (RFECommunicator.IsUnixLike())
@@ -257,6 +260,7 @@ namespace RFExplorerCommunicator
                         }
                     }
                 }
+#endif
                 m_objRFE.ConnectPort(sCOMPort, Convert.ToInt32(m_ComboBaudRate.SelectedItem.ToString()), RFECommunicator.IsUnixLike(), RFECommunicator.IsUnixLike() && !RFECommunicator.IsMacOSPlatform());
 
                 m_objRFE.HoldMode = false;
@@ -336,7 +340,7 @@ namespace RFExplorerCommunicator
                     {
                         arrPortsAvailable = m_objRFE.ValidCP2101Ports;
                     }
-
+#if UNIX_LIKE
                     if (RFECommunicator.IsUnixLike())
                     {
                         if (RFECommunicator.IsMacOSPlatform())
@@ -360,6 +364,7 @@ namespace RFExplorerCommunicator
                                 arrPortsAvailable[nInd] = arrPortsAvailable[nInd].Replace(LINUX_PORT_PREFIX, "");
                         }
                     }
+#endif
                     m_comboCOMPort.DataSource = arrPortsAvailable;
                     m_comboCOMPort.SelectedItem = sSelectedPort;
                 }
@@ -445,6 +450,7 @@ namespace RFExplorerCommunicator
             this.Size = new Size(nToolGroupWidth, this.Height);
             Rescan();
         }
+
         #endregion
     }
 

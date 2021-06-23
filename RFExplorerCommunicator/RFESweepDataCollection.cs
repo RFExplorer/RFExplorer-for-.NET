@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for Windows - A Handheld Spectrum Analyzer for everyone!
-//Copyright (C) 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright (C) 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -524,7 +524,7 @@ namespace RFExplorerCommunicator
 
         public void SaveFileXML(string sFilename, char cCSVDelimiter, RFEAmplitudeTableData AmplitudeCorrection)
         {
-            //TODO: create a self-contained structure, including all member variables, and a list of all amplitude values in a single element <ScanData>y1,y2,...</ScanData>
+            
         }
 
         public void CleanSweepData(UInt16 nTotalDataPoints)
@@ -579,6 +579,7 @@ namespace RFExplorerCommunicator
         /// Allocates up to nCollectionSize elements to start with the container.
         /// </summary>
         /// <param name="nCollectionSize">Upper limit is RFESweepDataCollection.MAX_ELEMENTS</param>
+        /// <param name="bAutogrow">true if collection can grow, false otherwise</param>
         public RFESweepDataCollection(UInt32 nCollectionSize, bool bAutogrow)
         {
             if (nCollectionSize > MAX_ELEMENTS)
@@ -589,6 +590,30 @@ namespace RFExplorerCommunicator
             m_nInitialCollectionSize = nCollectionSize;
 
             CleanAll();
+        }
+
+        /// <summary>
+        /// Allocates up to nCollectionSize elements from specific array. 
+        /// </summary>
+        /// <param name="arrSweepDataContainer">array of Sweep data collection</param>
+        /// <param name="bAutogrow">true if collection can grow, false otherwise</param>
+        public RFESweepDataCollection(RFESweepData[] arrSweepDataContainer, bool bAutogrow)
+        {
+            UInt32 nCollectionSize = (UInt32)arrSweepDataContainer.Length;
+
+            if (nCollectionSize > MAX_ELEMENTS)
+                nCollectionSize = MAX_ELEMENTS;
+
+            m_bAutogrow = bAutogrow;
+
+            m_nInitialCollectionSize = nCollectionSize;
+
+            CleanAll();
+
+            for (int nInd = 0; nInd < nCollectionSize; nInd++)
+            {
+                Add(arrSweepDataContainer[nInd]);
+            }
         }
 
         #region Public Functions
@@ -606,6 +631,14 @@ namespace RFExplorerCommunicator
         public int UpperBound
         {
             get { return m_nUpperBound; }
+        }
+
+        /// <summary>
+        /// Returns collection size
+        /// </summary>
+        public int CollectionSize
+        {
+            get { return m_arrData.Length; }
         }
 
         /// <summary>
@@ -849,7 +882,6 @@ namespace RFExplorerCommunicator
             return objReturn;
         }
 
-
         /// <summary>
         /// Calculates the absolute max value for a group of sweeps
         /// </summary>
@@ -987,7 +1019,7 @@ namespace RFExplorerCommunicator
                     binStream.Write((double)objFirst.StepFrequencyMHZ);
                     //NOTE: if we have different values for start/stop, we are saying we have more than we actually saved
                     //This is why we will save these parameters later again with nTotalSweepsActuallySaved
-                    binStream.Write((UInt32)m_nUpperBound);
+                    binStream.Write((UInt32)Count);
 
                     binStream.Write((UInt16)objFirst.TotalDataPoints);
                     binStream.Write((string)sConfigurationText);
@@ -1241,6 +1273,7 @@ namespace RFExplorerCommunicator
 
         public void ResizeCollection(int nSizeToAdd)
         {
+            m_nInitialCollectionSize = (UInt32)(m_arrData.Length + nSizeToAdd);
             Array.Resize(ref m_arrData, m_arrData.Length + nSizeToAdd);
         }
         #endregion
@@ -1269,25 +1302,6 @@ namespace RFExplorerCommunicator
         private string FileHeaderVersioned()
         {
             return "RFExplorer PC Client - Format v" + FILE_VERSION.ToString("D3");
-        }
-
-        void CompressMemoryBuffer(ref byte[] arrMemory, out byte[] gZipBuffer)
-        {
-            byte[] buffer = arrMemory;
-            var memoryStream = new MemoryStream();
-            using (var gZipStream = new GZipStream(memoryStream, CompressionMode.Compress, true))
-            {
-                gZipStream.Write(buffer, 0, buffer.Length);
-            }
-
-            memoryStream.Position = 0;
-
-            var compressedData = new byte[memoryStream.Length];
-            memoryStream.Read(compressedData, 0, compressedData.Length);
-
-            gZipBuffer = new byte[compressedData.Length + 4];
-            Buffer.BlockCopy(compressedData, 0, gZipBuffer, 4, compressedData.Length);
-            Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, gZipBuffer, 0, 4);
         }
         #endregion
     }
@@ -1337,28 +1351,46 @@ namespace RFExplorerCommunicator
 
         }
         /// <summary>
-        /// Check max amplitude values and add it to MaxHold amplitude array
+        /// Check max amplitude values with current partial sweep and add it to MaxHold partial sweep amplitude array
         /// </summary>
         /// <param name="objSweep">Source Partial sweep</param>
-        /// <returns></returns>
-        public bool AddMaxHoldData(RFESweepDataPartial objSweep)
+        /// <param name="sError">Exception messages</param>
+        /// <returns>True if process completed correctly</returns>
+        public bool AddMaxHoldData(RFESweepDataPartial objSweep, out string sError)
         {
+            sError = string.Empty;
+            bool bOK = true;
             try
             {
+                m_nAvailableDataPoints = objSweep.AvailableDataPoints;
                 for (UInt16 nDataPoint = 0; nDataPoint < objSweep.AvailableDataPoints; nDataPoint++)
                 {
-                    if (objSweep.GetAmplitudeDBM(nDataPoint, null, false) > GetAmplitudeDBM(nDataPoint, null, false))
+                    float fAmplitudeDBM = objSweep.GetAmplitudeDBM(nDataPoint, null, false);
+                    if (fAmplitudeDBM > GetAmplitudeDBM(nDataPoint, null, false))
                     {
-                        SetAmplitudeDBM(nDataPoint, objSweep.GetAmplitudeDBM(nDataPoint, null, false));
+                        SetAmplitudeDBM(nDataPoint, fAmplitudeDBM);
                     }
                 }
             }
-            catch
+            catch (Exception objExc)
             {
-                return false;
+                sError += objExc.ToString();
+                bOK = false;
+            }
+            return bOK;
             }
 
-            return true;
+        /// <summary>
+        /// Makes an exact copy of the sweep data object
+        /// </summary>
+        /// <returns>duplicate sweep data object</returns>
+        public RFESweepDataPartial DuplicatePartial()
+        {
+            RFESweepDataPartial objSweep = new RFESweepDataPartial();
+            objSweep.SetNewConfiguration(m_fStartFrequencyMHZ, m_fStepFrequencyMHZ, m_nTotalDataPoints);
+            objSweep.AvailableDataPoints = m_nAvailableDataPoints;
+            Array.Copy(m_arrAmplitude, objSweep.m_arrAmplitude, m_nTotalDataPoints);
+            return objSweep;
         }
     }
 }

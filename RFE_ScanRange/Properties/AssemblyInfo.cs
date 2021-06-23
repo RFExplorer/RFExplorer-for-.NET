@@ -1,6 +1,6 @@
 ﻿//============================================================================
 //RF Explorer for .NET - A Spectrum Analyzer for everyone!
-//Copyright © 2010-20 RF Explorer Technologies SL, www.rf-explorer.com
+//Copyright © 2010-21 RF Explorer Technologies SL, www.rf-explorer.com
 //
 //This application is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Lesser General Public
@@ -27,11 +27,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("RF Explorer ScanRange tool")]
 [assembly: AssemblyDescription("Open Source Console Sweep Range Scan tool for RF Explorer")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("RF Explorer")]
 [assembly: AssemblyProduct("RF Explorer ScanRange tool")]
-[assembly: AssemblyCopyright("Copyright © Ariel Rocholl 2010-2020")]
-[assembly: AssemblyTrademark("RF Explorer")]
-[assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

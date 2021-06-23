@@ -10,20 +10,15 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
-		Release_Full|x86 = Release_Full|x86
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3ECBB7C2-CE88-45C7-9E64-56BA595C7FDE}.Debug|x86.ActiveCfg = Debug|x86
 		{3ECBB7C2-CE88-45C7-9E64-56BA595C7FDE}.Debug|x86.Build.0 = Debug|x86
-		{3ECBB7C2-CE88-45C7-9E64-56BA595C7FDE}.Release_Full|x86.ActiveCfg = Release|x86
-		{3ECBB7C2-CE88-45C7-9E64-56BA595C7FDE}.Release_Full|x86.Build.0 = Release|x86
 		{3ECBB7C2-CE88-45C7-9E64-56BA595C7FDE}.Release|x86.ActiveCfg = Release|x86
 		{3ECBB7C2-CE88-45C7-9E64-56BA595C7FDE}.Release|x86.Build.0 = Release|x86
 		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Debug|x86.ActiveCfg = Debug|x86
 		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Debug|x86.Build.0 = Debug|x86
-		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Release_Full|x86.ActiveCfg = Release|x86
-		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Release_Full|x86.Build.0 = Release|x86
 		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Release|x86.ActiveCfg = Release|x86
 		{CD17C64C-8825-41EA-8AAD-EB5B0F3E08A1}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
